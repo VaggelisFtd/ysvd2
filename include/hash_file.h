@@ -27,7 +27,7 @@ HT_ErrorCode HT_Init();
 HT_ErrorCode HT_CreateIndex(
 	const char *fileName,		/* όνομααρχείου */
 	int depth
-	);
+);
 
 
 /*
@@ -36,8 +36,8 @@ HT_ErrorCode HT_CreateIndex(
  */
 HT_ErrorCode HT_OpenIndex(
 	const char *fileName, 		/* όνομα αρχείου */
-  int *indexDesc            /* θέση στον πίνακα με τα ανοιχτά αρχεία  που επιστρέφεται */
-	);
+  	int *indexDesc            	/* θέση στον πίνακα με τα ανοιχτά αρχεία  που επιστρέφεται */
+);
 
 /*
  * Η ρουτίνα αυτή κλείνει το αρχείο του οποίου οι πληροφορίες βρίσκονται στην θέση indexDesc του πίνακα ανοιχτών αρχείων.
@@ -46,7 +46,7 @@ HT_ErrorCode HT_OpenIndex(
  */
 HT_ErrorCode HT_CloseFile(
 	int indexDesc 		/* θέση στον πίνακα με τα ανοιχτά αρχεία */
-	);
+);
 
 /*
  * Η συνάρτηση HT_InsertEntry χρησιμοποιείται για την εισαγωγή μίας εγγραφής στο αρχείο κατακερματισμού. 
@@ -54,9 +54,9 @@ HT_ErrorCode HT_CloseFile(
  * Σε περίπτωση που εκτελεστεί επιτυχώς επιστρέφεται HT_OK, ενώ σε διαφορετική περίπτωση κάποιος κωδικός λάθους.
  */
 HT_ErrorCode HT_InsertEntry(
-	int indexDesc,	/* θέση στον πίνακα με τα ανοιχτά αρχεία */
+	int indexDesc,		/* θέση στον πίνακα με τα ανοιχτά αρχεία */
 	Record record		/* δομή που προσδιορίζει την εγγραφή */
-	);
+);
 
 /*
  * Η συνάρτηση HΤ_PrintAllEntries χρησιμοποιείται για την εκτύπωση όλων των εγγραφών που το record.id έχει τιμή id. 
@@ -64,9 +64,9 @@ HT_ErrorCode HT_InsertEntry(
  * Σε περίπτωση που εκτελεστεί επιτυχώς επιστρέφεται HP_OK, ενώ σε διαφορετική περίπτωση κάποιος κωδικός λάθους.
  */
 HT_ErrorCode HT_PrintAllEntries(
-	int indexDesc,	/* θέση στον πίνακα με τα ανοιχτά αρχεία */
+	int indexDesc,			/* θέση στον πίνακα με τα ανοιχτά αρχεία */
 	int *id 				/* τιμή του πεδίου κλειδιού προς αναζήτηση */
-	);
+);
 
 
 #endif // HASH_FILE_H

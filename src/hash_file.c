@@ -23,7 +23,6 @@ HT_ErrorCode HT_Init() {
 }
 
 HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
-  
 
 
   // BF_Block_SetDirty();

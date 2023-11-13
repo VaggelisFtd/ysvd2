@@ -11,17 +11,25 @@
   BF_ErrorCode code = call; \
   if (code != BF_OK) {         \
     BF_PrintError(code);    \
-    return HP_ERROR;        \
+    return HT_ERROR;        \
   }                         \
 }
 
 HT_ErrorCode HT_Init() {
-  //insert code here
+
+  CALL_BF(BF_Init(LRU));
+
   return HT_OK;
 }
 
 HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
-  //insert code here
+  
+
+
+  // BF_Block_SetDirty();
+  // CALL_BF(BF_UnpinBlock());
+  // CALL_BF(BF_CloseFile());
+  
   return HT_OK;
 }
 

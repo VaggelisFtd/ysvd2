@@ -1,6 +1,8 @@
 #ifndef HASH_FILE_H
 #define HASH_FILE_H
 
+#define MAX_RECORDS (BF_BLOCK_SIZE / sizeof(Record))
+
 typedef enum HT_ErrorCode {
   HT_OK,
   HT_ERROR
@@ -12,6 +14,29 @@ typedef struct Record {
 	char surname[20];
 	char city[20];
 } Record;
+
+/* HT_info struct holds metadata associated with the hash file */
+typedef struct {
+	bool is_ht;					// TRUE is ht file
+    int fileDesc;              	// identifier number for opening file from block
+
+	int global_depth;
+	int* ht_array;				// hash table array
+
+
+} HT_info;
+
+typedef struct {
+    int num_rec;                // number of records in this block
+	int local_depth;
+	BF_Block* next;             // pointer to the next block
+} HT_block_info;
+
+typedef struct Bucket{
+  int record_count;
+  int bucket_size;
+  Record records[MAX_RECORDS]; 
+} Bucket;
 
 /*
  * Η συνάρτηση HT_Init χρησιμοποιείται για την αρχικοποίηση κάποιον δομών που μπορεί να χρειαστείτε. 

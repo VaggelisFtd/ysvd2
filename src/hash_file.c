@@ -36,7 +36,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   return HT_OK;
 }
 
-HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
+HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) { // mporoume na ths pername k epipleon orismata
   //insert code here
   return HT_OK;
 }

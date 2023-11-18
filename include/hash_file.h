@@ -6,6 +6,13 @@ typedef enum HT_ErrorCode {
   HT_ERROR
 } HT_ErrorCode;
 
+typedef struct HT_Info {
+	int id;
+	char name[15];
+	char surname[20];
+	char city[20];
+} HT_Info;
+
 typedef struct Record {
 	int id;
 	char name[15];

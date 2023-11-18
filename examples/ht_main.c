@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <time.h>
 #include "bf.h"
 #include "hash_file.h"
 
-#define RECORDS_NUM 1000 // you can change it if you want
+#define MAX_RECORDS 1000 // you can change it if you want
 #define GLOBAL_DEPT 2 // you can change it if you want // prepei na bgei sthn telikh main
 #define FILE_NAME "data.db"
 
@@ -74,7 +75,7 @@ int main() {
   srand(12569874);
   int r;
   printf("Insert Entries\n");
-  for (int id = 0; id < RECORDS_NUM; ++id) {
+  for (int id = 0; id < MAX_RECORDS; ++id) {
     // create a record
     record.id = id;
     r = rand() % 12;
@@ -88,7 +89,7 @@ int main() {
   }
 
   printf("RUN PrintAllEntries\n");
-  int id = rand() % RECORDS_NUM;
+  int id = rand() % MAX_RECORDS;
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
   //CALL_OR_DIE(HT_PrintAllEntries(indexDesc, NULL));
 

@@ -1,7 +1,10 @@
 #ifndef HASH_FILE_H
 #define HASH_FILE_H
 
-#include "Record.h"
+#include <stdbool.h>
+#include "record.h"
+
+#define MAX_RECORDS 1000 // you can change it if you want
 
 typedef enum HT_ErrorCode {
   HT_OK,

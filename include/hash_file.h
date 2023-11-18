@@ -1,6 +1,8 @@
 #ifndef HASH_FILE_H
 #define HASH_FILE_H
 
+#include "Record.h"
+
 typedef enum HT_ErrorCode {
   HT_OK,
   HT_ERROR
@@ -26,13 +28,6 @@ typedef struct Bucket{
 	int bucket_size;
 	Record records[MAX_RECORDS]; 
 } Bucket;
-
-typedef struct Record {
-	int id;
-	char name[15];
-	char surname[20];
-	char city[20];
-} Record;
 
 /*
  * Η συνάρτηση HT_Init χρησιμοποιείται για την αρχικοποίηση κάποιον δομών που μπορεί να χρειαστείτε. 

@@ -6,12 +6,26 @@ typedef enum HT_ErrorCode {
   HT_ERROR
 } HT_ErrorCode;
 
-typedef struct HT_Info {
-	int id;
-	char name[15];
-	char surname[20];
-	char city[20];
-} HT_Info;
+/* HT_info struct holds metadata associated with the hash file */
+typedef struct {
+	bool is_ht;					// TRUE is ht file
+    int fileDesc;              	// identifier number for opening file from block
+	int global_depth;
+	int* ht_array;				// hash table array - contains int-ids of blocks
+} HT_info;
+
+typedef struct {
+    int num_rec;                // number of records in this block
+	// int local_depth;
+	BF_Block* next_block;       // pointer to the next block // SOOOOS - mhpws prepei na ginei int* ???
+} HT_block_info;
+
+typedef struct Bucket{
+	int local_depth; // new - mallon prepei na einai edw
+	int record_count;
+	int bucket_size;
+	Record records[MAX_RECORDS]; 
+} Bucket;
 
 typedef struct Record {
 	int id;

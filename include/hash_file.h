@@ -2,7 +2,7 @@
 #define HASH_FILE_H
 
 #include <stdbool.h>
-#include "record.h"
+#include "../include/record.h"
 
 #define MAX_RECORDS 1000 // you can change it if you want
 

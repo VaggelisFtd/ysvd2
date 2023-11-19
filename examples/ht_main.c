@@ -3,8 +3,9 @@
 #include <string.h>
 #include <stdbool.h>
 #include <time.h>
-#include "bf.h"
-#include "hash_file.h"
+#include "../include/bf.h"
+#include "../include/hash_file.h"
+// #include "../include/record.h"
 
 #define MAX_RECORDS 1000 // you can change it if you want
 #define GLOBAL_DEPT 2 // you can change it if you want // prepei na bgei sthn telikh main
@@ -74,7 +75,7 @@ int main() {
   Record record;
   srand(12569874);
   int r;
-  printf("Insert Entries\n");
+  printf("Inserting %d Entries\n", MAX_RECORDS);
   for (int id = 0; id < MAX_RECORDS; ++id) {
     // create a record
     record.id = id;
@@ -84,8 +85,9 @@ int main() {
     memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
     r = rand() % 10;
     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
-
     CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
+    // CALL_OR_DIE(HT_InsertEntry(indexDesc, randomRecord())); // cant define randomRecord() for some reason...
+
   }
 
   printf("RUN PrintAllEntries\n");

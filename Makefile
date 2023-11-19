@@ -9,5 +9,6 @@ ht:
 run:
 	./build/ht_main
 
-#clean:
+clean:
 #	rm data.db
+	rm ./build/ht_main

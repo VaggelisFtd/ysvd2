@@ -16,21 +16,22 @@ typedef struct {
 	bool is_ht;					// TRUE is ht file
     int fileDesc;              	// identifier number for opening file from block
 	int global_depth;
-	int* ht_array;				// hash table array - contains int-ids of blocks
+	int* ht_array;				// hash table array - contains int-ids of blocks/buckets
 } HT_info;
 
 typedef struct {
     int num_rec;                // number of records in this block
-	// int local_depth;
+	int local_depth;
+	int max_records;			// was (block/bucket)_size
 	BF_Block* next_block;       // pointer to the next block // SOOOOS - mhpws prepei na ginei int* ???
 } HT_block_info;
 
-typedef struct Bucket{
-	int local_depth; // new - mallon prepei na einai edw
-	int record_count;
-	int bucket_size;
-	Record records[MAX_RECORDS]; 
-} Bucket;
+// typedef struct Bucket{
+	// int local_depth; // new - mallon prepei na einai edw???
+	// int record_count;
+	// int bucket_size;
+	// Record records[MAX_RECORDS]; 
+// } Bucket;
 
 /*
  * Η συνάρτηση HT_Init χρησιμοποιείται για την αρχικοποίηση κάποιον δομών που μπορεί να χρειαστείτε. 

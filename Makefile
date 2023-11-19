@@ -10,5 +10,5 @@ run:
 	./build/ht_main
 
 clean:
-#	rm data.db
 	rm ./build/ht_main
+#	rm data.db

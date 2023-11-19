@@ -6,3 +6,8 @@ ht:
 # 	@echo " Compile bf_main ...";
 # 	gcc -I ./include/ -L ./lib/ -Wl,-rpath,./lib/ ./examples/bf_main.c -lbf -o ./build/bf_main -O2
 
+run:
+	./build/ht_main
+
+#clean:
+#	rm data.db

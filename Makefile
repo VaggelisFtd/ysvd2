@@ -11,4 +11,4 @@ run:
 
 clean:
 	rm ./build/ht_main
-#	rm data.db
+	rm data.db

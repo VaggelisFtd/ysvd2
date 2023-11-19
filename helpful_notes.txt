@@ -1,0 +1,13 @@
+Insert:
+    // Check buckets data
+    1) if bucket has no records
+        a) Allocate first block
+        b) Place record inside the new block
+        c) Update new blocks -> next pointer // points to the next block in this bucket! (default = -1)
+    2) there is at least 1 record in this bucket
+        a) get the last block in the bucket
+        b) if there is room in this block
+            i) place the record in the first avaliable slot!
+        c) else
+            i) allocate a new block (+do whats needed, i.e. place its block number in the previous block, ...)
+            ii) palce record inside new block

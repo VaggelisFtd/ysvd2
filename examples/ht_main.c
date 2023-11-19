@@ -7,6 +7,18 @@
 #include "../include/hash_file.h"
 // #include "../include/record.h"
 
+int Check(int call)
+{
+  BF_ErrorCode code = call;
+  // printf("%d wwwwww\n", code);   // an den uparxei ena printf edw h mesa sto IF, skaei to programma???
+  if (code != BF_OK)
+  {
+    BF_PrintError(code);
+    printf("bf_error_code = %d\n", code); // h edw*
+    return -1;
+  }
+}
+
 #define MAX_RECORDS 1000 // you can change it if you want
 #define GLOBAL_DEPTH 2 // you can change it if you want // prepei na bgei sthn telikh main
 #define FILE_NAME "data.db"
@@ -70,13 +82,81 @@ int main() {
 
   int indexDesc;
   // CALL_OR_DIE(HT_CreateIndex(FILE_NAME, GLOBAL_DEPTH));
+  HT_info ht_info;
+  BF_Block *block;
+  void *headblock; // was named data
+  void *data;
+
+  if (Check(BF_CreateFile(FILE_NAME)) < 0) {
+  printf("Error creating file: %s in HP_CreateFile\n", FILE_NAME);
+  return -1;
+  }
+
+  if (Check(BF_OpenFile(FILE_NAME, &ht_info.fileDesc)) < 0) {
+    printf("Error opening file: %s in HP_CreateFile\n", FILE_NAME);
+    return -1;
+  }
+
+  BF_Block_Init(&block);
+
+  if (Check(BF_AllocateBlock(ht_info.fileDesc, block)) < 0) {
+    printf("Error allocating block in HP_CreateFile\n");
+    return -1;
+  }
+
+  headblock = BF_Block_GetData(block);
+  ht_info.is_ht = true;
+  ht_info.global_depth = GLOBAL_DEPTH; // xekiname me 2 buckets (00, 01 i guess)
+  ht_info.ht_array = malloc(GLOBAL_DEPTH * sizeof(int)); // space for 2 blocks/buckets
+
+  memcpy(headblock, &ht_info, sizeof(HT_info));
+  BF_Block_SetDirty(block);
+  if (Check(BF_UnpinBlock(block)) < 0) {
+    printf("Error allocating block in HP_CreateFile\n");
+    return -1;
+  }
+
+  if (Check(BF_AllocateBlock(ht_info.fileDesc, block)) < 0) {   // allocate 1st bucket/block
+    printf("Error allocating block in HP_CreateFile\n");
+    return -1;
+  }
+  data = BF_Block_GetData(block);
+  HT_block_info ht_block_info;
+  ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
+  ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
+  ht_block_info.next_block = 0;
+  ht_block_info.num_rec = 0;
+  memcpy(data, &ht_block_info, sizeof(HT_block_info));
+  BF_Block_SetDirty(block);
+  if (Check(BF_UnpinBlock(block)) < 0) {
+    printf("Error allocating block in HP_CreateFile\n");
+    return -1;
+  }
+
+  if (Check(BF_AllocateBlock(ht_info.fileDesc, block)) < 0) {   // allocate 2nd bucket/block
+    printf("Error allocating block in HP_CreateFile\n");
+    return -1;
+  }
+  data = BF_Block_GetData(block);
+  ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
+  ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
+  ht_block_info.next_block = 0;
+  ht_block_info.num_rec = 0;
+  memcpy(data, &ht_block_info, sizeof(HT_block_info));
+  BF_Block_SetDirty(block);
+  if (Check(BF_UnpinBlock(block)) < 0) {
+    printf("Error allocating block in HP_CreateFile\n");
+    return -1;
+  }
   // CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc)); 
 
   Record record;
   srand(12569874);
   int r;
-  printf("Inserting %d Entries\n", MAX_RECORDS);
-  for (int id = 0; id < MAX_RECORDS; ++id) {
+  // printf("Inserting %d Entries\n", MAX_RECORDS);
+  printf("Inserting 2 Entries\n");
+  // for (int id = 0; id < MAX_RECORDS; ++id) {
+  for (int id = 0; id < 2; ++id) {
     // create a record
     record.id = id;
     r = rand() % 12;
@@ -85,69 +165,6 @@ int main() {
     memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
     r = rand() % 10;
     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // ====================================
-    HT_info ht_info;
-    BF_Block *block;
-    void *headblock; // was named data
-    void *data;
-
-    if (Check(BF_CreateFile(FILE_NAME)) < 0) {
-    printf("Error creating file: %s in HP_CreateFile\n", FILE_NAME);
-    return -1;
-    }
-
-    if (Check(BF_OpenFile(FILE_NAME, &ht_info.fileDesc)) < 0) {
-      printf("Error opening file: %s in HP_CreateFile\n", FILE_NAME);
-      return -1;
-    }
-
-    BF_Block_Init(&block);
-
-    if (Check(BF_AllocateBlock(hp_info.fileDesc, block)) < 0) {
-      printf("Error allocating block in HP_CreateFile\n");
-      return -1;
-    }
-
-    headblock = BF_Block_GetData(block);
-    ht_info.is_ht = true;
-    ht_info.global_depth = GLOBAL_DEPTH; // xekiname me 2 buckets (00, 01 i guess)
-    ht_info.ht_array = malloc(GLOBAL_DEPTH * sizeof(int)); // space for 2 blocks/buckets
-
-    memcpy(headblock, &ht_info, sizeof(HT_info));
-     BF_Block_SetDirty(block);
-    if (Check(BF_UnpinBlock(block)) < 0) {
-      printf("Error allocating block in HP_CreateFile\n");
-      return -1;
-    }
-
-    
-    // ====================================
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -163,5 +180,14 @@ int main() {
 
 
   // CALL_OR_DIE(HT_CloseFile(indexDesc));
+  
+  // if (ht_info == NULL) {
+  //   return -1;
+  // }
+  if (Check(BF_CloseFile(ht_info.fileDesc)) < 0) { // kanei automata Pin
+    printf("Error closing fd in HP_CloseFile\n");
+    return -1;
+  }
   BF_Close();
+  
 }

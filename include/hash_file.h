@@ -35,27 +35,6 @@ typedef struct {
 	// Record records[MAX_RECORDS]; 
 // } Bucket;
 
-/* HT_info struct holds metadata associated with the hash file */
-typedef struct {
-	bool is_ht;					// TRUE is ht file
-    int fileDesc;              	// identifier number for opening file from block
-	int global_depth;
-	int* ht_array;				// hash table array
-} HT_info;
-
-typedef struct {
-    int num_rec;                // number of records in this block
-	// int local_depth;
-	BF_Block* next;             // pointer to the next block
-} HT_block_info;
-
-typedef struct Bucket{
-	int local_depth;			// if local_depth < global-depth -> no need to double the hash-table, just allocate a new *block?/bucket?*
-	int record_count;
-	int bucket_size;
-	Record records[MAX_RECORDS]; 
-} Bucket;
-
 /*
  * Η συνάρτηση HT_Init χρησιμοποιείται για την αρχικοποίηση κάποιον δομών που μπορεί να χρειαστείτε. 
  * Σε περίπτωση που εκτελεστεί επιτυχώς, επιστρέφεται HT_OK, ενώ σε διαφορετική περίπτωση κωδικός λάθους.

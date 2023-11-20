@@ -21,7 +21,8 @@ typedef struct {
     int fileDesc;              	// identifier number for opening file from block
 
 	int global_depth;
-	int* ht_array;				// hash table array
+	// int* ht_array;				// hash table array
+	// next_ht_array
 
 
 } HT_info;
@@ -37,6 +38,15 @@ typedef struct Bucket{
   int bucket_size;
   Record records[MAX_RECORDS]; 
 } Bucket;
+
+typedef struct HashTable {
+	BF_Block* block; 		// pointer to a block [that corresponds to a bucket]
+}
+
+// typedef struct HashTable_Array {	// ?????????
+// 	int buckets[];
+	
+// }
 
 /*
  * Η συνάρτηση HT_Init χρησιμοποιείται για την αρχικοποίηση κάποιον δομών που μπορεί να χρειαστείτε. 

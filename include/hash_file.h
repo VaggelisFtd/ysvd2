@@ -19,29 +19,26 @@ typedef struct Record {
 typedef struct {
 	bool is_ht;					// TRUE is ht file
     int fileDesc;              	// identifier number for opening file from block
-
 	int global_depth;
-	// int* ht_array;				// hash table array
-	// next_ht_array
-
-
+	int* ht_array;				// hash table array
 } HT_info;
 
 typedef struct {
     int num_rec;                // number of records in this block
-	int local_depth;
+	// int local_depth;
 	BF_Block* next;             // pointer to the next block
 } HT_block_info;
 
 typedef struct Bucket{
-  int record_count;
-  int bucket_size;
-  Record records[MAX_RECORDS]; 
+	int local_depth;			// if local_depth < global-depth -> no need to double the hash-table, just allocate a new *block?/bucket?*
+	int record_count;
+	int bucket_size;
+	Record records[MAX_RECORDS]; 
 } Bucket;
 
 typedef struct HashTable {
 	BF_Block* block; 		// pointer to a block [that corresponds to a bucket]
-}
+};
 
 // typedef struct HashTable_Array {	// ?????????
 // 	int buckets[];

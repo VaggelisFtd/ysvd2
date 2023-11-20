@@ -23,9 +23,9 @@ typedef struct {
 typedef struct {
     int num_records;                // number of records in this block
 	int local_depth;
-	int max_records;			// was (block/bucket)_size
-	int next_block;       // pointer to the next block // SOOOOS - mhpws prepei na ginei int* ???
-	// BF_Block* next_block;       // pointer to the next block // SOOOOS - mhpws prepei na ginei int* ???
+	int max_records;				// was (block/bucket)_size
+	int next_block;       			// pointer to the next block // SOOOOS - mhpws prepei na ginei int* ???
+	// BF_Block* next_block;
 } HT_block_info;
 
 // typedef struct Bucket{

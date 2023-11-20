@@ -162,7 +162,7 @@ int main() {
   // printf("Inserting %d Entries\n", MAX_RECORDS);
   printf("Inserting 2 Entries\n");
   // for (int id = 0; id < MAX_RECORDS; ++id) {
-  for (int id = 0; id < 2; ++id) {
+  for (int id = 0; id < 5; ++id) {
     // create a record
     record.id = id;
     printf(" record.id = %d\n", record.id);
@@ -226,7 +226,6 @@ int main() {
 
 
   // try to read the 2 records i put in 1st block
-  // Record record; // redeclaration
   if ((BF_GetBlock(indexDesc, 1, block)) < 0) {
     printf("Error getting block in HT_InsertEntry\n");
     return -1;
@@ -235,12 +234,16 @@ int main() {
   data = BF_Block_GetData(block);
   // get the metadata of this block
   memcpy(&record, data, sizeof(Record));
-  printf("Record 1 in Block 1: id=%d, city=%s, name=%s, surname=%s\n", record.id, record.city, record.name, record.surname);
+  // printf("Record 1 in Block 1: id=%d, city=%s, name=%s, surname=%s\n", record.id, record.city, record.name, record.surname);
   
   memcpy(&record, data+sizeof(Record), sizeof(Record));
-  printf("Record 2 in Block 1: id=%d, city=%s, name=%s, surname=%s\n", record.id, record.city, record.name, record.surname);
+  // printf("Record 2 in Block 1: id=%d, city=%s, name=%s, surname=%s\n", record.id, record.city, record.name, record.surname);
 
+  for(int k = 0 ; k < ht_block_info.num_records * sizeof(Record) ; k = k + sizeof(Record)) {
+    memcpy(&record, data + k, sizeof(Record));
+    printf("Record in offset %d in Block 1: id=%d, city=%s, name=%s, surname=%s\n", k, record.id, record.city, record.name, record.surname);
 
+  }
 
 
 

@@ -20,25 +20,27 @@ typedef struct {
 	bool is_ht;					// TRUE is ht file
     int fileDesc;              	// identifier number for opening file from block
 	int global_depth;
-	int* ht_array;				// hash table array
+	int* ht_array;				// hash table array - contains int-ids of blocks/buckets
 } HT_info;
 
 typedef struct {
-    int num_rec;                // number of records in this block
-	// int local_depth;
-	BF_Block* next;             // pointer to the next block
+    int num_records;                // number of records in this block
+	int local_depth;
+	int max_records;				// was (block/bucket)_size
+	int next_block;       			// pointer to the next block // SOOOOS - mhpws prepei na ginei int* ???
+	// BF_Block* next_block;
 } HT_block_info;
 
-typedef struct Bucket{
-	int local_depth;			// if local_depth < global-depth -> no need to double the hash-table, just allocate a new *block?/bucket?*
-	int record_count;
-	int bucket_size;
-	Record records[MAX_RECORDS]; 
-} Bucket;
+// typedef struct Bucket{
+// 	int local_depth;			// if local_depth < global-depth -> no need to double the hash-table, just allocate a new *block?/bucket?*
+// 	int record_count;
+// 	int bucket_size;
+// 	Record records[MAX_RECORDS]; 
+// } Bucket;
 
-typedef struct HashTable {
-	BF_Block* block; 		// pointer to a block [that corresponds to a bucket]
-};
+// typedef struct HashTable {
+// 	BF_Block* block; 		// pointer to a block [that corresponds to a bucket]
+// };
 
 // typedef struct HashTable_Array {	// ?????????
 // 	int buckets[];

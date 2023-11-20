@@ -23,6 +23,7 @@ typedef struct {
 	int* ht_array;				// hash table array
 } HT_info;
 
+
 typedef struct {
     int num_rec;                // number of records in this block
 	// int local_depth;

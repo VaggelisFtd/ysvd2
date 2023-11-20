@@ -20,7 +20,7 @@ typedef struct {
 } HT_info;
 
 typedef struct {
-    int num_rec;                // number of records in this block
+    int num_records;                // number of records in this block
 	int local_depth;
 	int max_records;			// was (block/bucket)_size
 	int next_block;       // pointer to the next block // SOOOOS - mhpws prepei na ginei int* ???
@@ -77,6 +77,7 @@ HT_ErrorCode HT_CloseFile(
 HT_ErrorCode HT_InsertEntry(
 	int indexDesc,		/* θέση στον πίνακα με τα ανοιχτά αρχεία */
 	Record record		/* δομή που προσδιορίζει την εγγραφή */
+	/*, HT_info *ht_info */
 );
 
 /*

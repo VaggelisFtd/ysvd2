@@ -124,14 +124,20 @@ int main() {
   HT_block_info ht_block_info;
   ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
   ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
+  printf(" ht_block_info.max_records ===== %d\n", ht_block_info.max_records);
   ht_block_info.next_block = 0;
-  ht_block_info.num_rec = 0;
-  memcpy(data, &ht_block_info, sizeof(HT_block_info));
+  ht_block_info.num_records = 0;
+  memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
   BF_Block_SetDirty(block);
   if (Check(BF_UnpinBlock(block)) < 0) {
     printf("Error allocating block in HP_CreateFile\n");
     return -1;
   }
+  BF_GetBlock(ht_info.fileDesc, 1, block);
+  data = BF_Block_GetData(block);
+  memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
+  printf(" ht_block_info.num_records ===== %d\n", ht_block_info.num_records);
+  printf(" ht_block_info.max_records2` ===== %d\n", ht_block_info.max_records);
 
   if (Check(BF_AllocateBlock(ht_info.fileDesc, block)) < 0) {   // allocate 2nd bucket/block
     printf("Error allocating block in HP_CreateFile\n");
@@ -141,7 +147,7 @@ int main() {
   ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
   ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
   ht_block_info.next_block = 0;
-  ht_block_info.num_rec = 0;
+  ht_block_info.num_records = 0;
   memcpy(data, &ht_block_info, sizeof(HT_block_info));
   BF_Block_SetDirty(block);
   if (Check(BF_UnpinBlock(block)) < 0) {
@@ -159,19 +165,84 @@ int main() {
   for (int id = 0; id < 2; ++id) {
     // create a record
     record.id = id;
+    printf(" record.id = %d\n", record.id);
     r = rand() % 12;
     memcpy(record.name, names[r], strlen(names[r]) + 1);
+    printf(" record.name = %s\n", record.name);
     r = rand() % 12;
     memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
+    printf(" record.surname = %s\n", record.surname);
     r = rand() % 10;
     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
+    printf(" record.city = %s\n", record.city);
 
 
 
-    CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
+    // CALL_OR_DIE(HT_InsertEntry(ht_info.fileDesc, record));
     // CALL_OR_DIE(HT_InsertEntry(indexDesc, randomRecord())); // cant define randomRecord() for some reason...
 
+
+
+
+    printf(" =========== \n");
+    if ((BF_GetBlock(indexDesc, 1, block)) < 0) {
+      printf("Error getting block in HT_InsertEntry\n");
+      return -1;
+    }
+    // get pointer to block's 1 data
+    printf(" =========== \n");
+    data = BF_Block_GetData(block);
+    // get the metadata of this block
+    printf(" =========== \n");
+    memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
+    printf(" =========== \n");
+    // if there is enough space for the record
+    printf(" ht_block_info.num_records = %d\n", ht_block_info.num_records);
+    printf(" ht_block_info.max_records = %d\n", ht_block_info.max_records);
+    // if (ht_block_info.num_records < ht_info->max_records) { /*prepei mallon na balw to max records tou bucket/block edw -> to size opws to lew an 8umamai kala */
+    if (ht_block_info.num_records < ht_block_info.max_records) {
+      // insert the record in the last position (for records) in the block
+      printf(" record.id = %d\n", record.id);
+      printf(" record.name = %s\n", record.name);
+      printf(" record.surname = %s\n", record.surname);
+      printf(" record.city = %s\n", record.city);
+      memcpy(data + sizeof(Record) * ht_block_info.num_records, &record, sizeof(Record));
+
+      // this block's data changed, so we update its hp_block_indo
+      ht_block_info.num_records++;
+
+      // copy the updated hp_info at the end of the block
+      memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
+
+      // write the block back on disc
+      BF_Block_SetDirty(block);
+      if ((BF_UnpinBlock(block)) < 0) {
+        printf("Error unpinning block in HT_InsertEntry\n");
+        return -1;
+      }
+    }
+
   }
+
+
+  // try to read the 2 records i put in 1st block
+  // Record record; // redeclaration
+  if ((BF_GetBlock(indexDesc, 1, block)) < 0) {
+    printf("Error getting block in HT_InsertEntry\n");
+    return -1;
+  }
+  // get pointer to block's 1 data
+  data = BF_Block_GetData(block);
+  // get the metadata of this block
+  memcpy(&record, data, sizeof(Record));
+  printf("Record 1 in Block 1: id=%d, city=%s, name=%s, surname=%s\n", record.id, record.city, record.name, record.surname);
+  
+  memcpy(&record, data+sizeof(Record), sizeof(Record));
+  printf("Record 2 in Block 1: id=%d, city=%s, name=%s, surname=%s\n", record.id, record.city, record.name, record.surname);
+
+
+
+
 
   // printf("RUN PrintAllEntries\n");
   // int id = rand() % MAX_RECORDS;
@@ -181,6 +252,8 @@ int main() {
 
   // CALL_OR_DIE(HT_CloseFile(indexDesc));
   
+  BF_Block_Destroy(&block);
+
   // if (ht_info == NULL) {
   //   return -1;
   // }

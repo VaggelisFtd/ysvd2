@@ -17,7 +17,7 @@
   }                         \
 }
 
-//static int file_count;
+static int file_count;
 HT_info* HT_table[MAX_OPEN_FILES];      // hash table for open files
 
 // hash function
@@ -41,7 +41,7 @@ HT_ErrorCode HT_Init() {
 HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
   // Open files are at maximum - we can't create more
-  //if (file_count == MAX_OPEN_FILES) { return HT_ERROR; } //den yparxei kenh thesh
+  if (file_count == MAX_OPEN_FILES) { return HT_ERROR; }
 
   HT_info ht_info;
   BF_Block* block;
@@ -112,12 +112,21 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
   // Close the file
   CALL_BF(BF_CloseFile(ht_info.fileDesc));
+
+  file_count++; // edw h sthn open?????
   
   return HT_OK;
 }
 
 HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
-  //insert code here
+  
+  // elegxos edw h sthn create
+
+  CALL_BF(BF_OpenFile(fileName, indexDesc));
+
+  //vres thesi k vale to arxeio
+
+
   return HT_OK;
 }
 

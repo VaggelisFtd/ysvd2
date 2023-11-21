@@ -20,7 +20,10 @@ typedef struct {
 	bool is_ht;					// TRUE is ht file
     int fileDesc;              	// identifier number for opening file from block
 	int global_depth;
-	int* ht_array;				// hash table array - contains int-ids of blocks/buckets
+	int ht_id;					// block id of fisrt ht block
+	//int* ht_array;				// hash table array - contains int-ids of blocks/buckets
+    int max_records;            // max number of records that can be stored
+	// int max_HT;					// max number of entries in each ht block
 } HT_info;
 
 typedef struct {

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <math.h>
 
 #include "bf.h"
 #include "hash_file.h"
@@ -20,7 +21,9 @@
 HT_info* HT_table[MAX_OPEN_FILES];      // hash table for open files
 
 // hash function
-
+int hash_function(int id, int buckets) {
+  return id % buckets;
+}
 
 HT_ErrorCode HT_Init() {
   
@@ -41,39 +44,71 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   //if (file_count == MAX_OPEN_FILES) { return HT_ERROR; } //den yparxei kenh thesh
 
   HT_info ht_info;
-  BF_Block *block;
-  void *data;
+  BF_Block* block;
+  BF_Block* ht_block;
+  BF_Block* next_ht_block;
+  void* data;
+  int file_desc,N,required,i;
 
   CALL_BF(BF_CreateFile(filename));
   CALL_BF(BF_OpenFile(filename, ht_info.fileDesc));
 
-  // META DATA BLOCK
+  // META DATA BLOCK --> first
 
-  // First block has HT_info --> Initialize
   BF_Block_Init(&block);
   CALL_BF(BF_AllocateBlock(ht_info.fileDesc, block));
+  
   data = BF_Block_GetData(block);
 
   ht_info.is_ht = true;
   ht_info.global_depth = depth; 
+  ht_info.ht_id = -1;
+  ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record); // floor?
 
-  // Copy struct HP_info in the meta-data block (first)
-  memcpy(block, &ht_info, sizeof(HT_info));
-  
-  // Make it dirty and unpin so that it is saved in disc
+  // HASH TABLE BLOCK --> second
+  /*----------------------------------------------------------------------------------------------------------------------------*/
+
+  BF_Block_Init(&ht_block);
+  CALL_BF(BF_AllocateBlock(file_desc, ht_block));
+
+  ////??????????????
+
+  N = pow(2, ht_info.global_depth); //2^depth --> number of entries
+
+  data = BF_Block_GetData(ht_block);
+
+  memcpy(data,&ht_info.ht_id,sizeof(int));
+  //for(i=0;i<ht_info.max_records;i++)
+  // memcpy
+
+  // Hash Table can be stored in multiple blocks --> Create & Initialize more if needed
+  required = ceil(N/ht_info.max_records);
+
+  while(required>1) {
+    BF_Block_Init(&next_ht_block);
+    CALL_BF(BF_AllocateBlock(file_desc, next_ht_block));
+    
+    //memcpy
+
+    BF_Block_SetDirty(next_ht_block);
+    CALL_BF(BF_UnpinBlock(next_ht_block));
+
+    //next_ht_block=
+  }
+  /*----------------------------------------------------------------------------------------------------------------------------*/
+
+  // Write meta-data values to meta-data block
+  memcpy(data, &ht_info, sizeof(HT_info));
+
+  // Set blocks as dirty & unpin them, so that they are saved in disc
   BF_Block_SetDirty(block);
+  BF_Block_SetDirty(ht_block);
   CALL_BF(BF_UnpinBlock(block));
+  CALL_BF(BF_UnpinBlock(ht_block));
 
-  // HASH TABLE BLOCK
-
-  // Determine blocks required for ht
-
-  //allocate first block for ht
-  // BF_AllocateBlock
-
-
-  // Call Destroy after calling Init to free the memory
+  // Call Destroy to free the memory
   BF_Block_Destroy(&block);
+  BF_Block_Destroy(&ht_block);
 
   // Close the file
   CALL_BF(BF_CloseFile(ht_info.fileDesc));

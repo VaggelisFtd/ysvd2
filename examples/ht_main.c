@@ -190,11 +190,7 @@ int main() {
   // get the metadata of this block
   memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
   
-  // for(int k = 0 ; k < ht_block_info.num_records * sizeof(Record) ; k = k + sizeof(Record)) {
-  //   memcpy(&record, data + k, sizeof(Record));
-  //   printf("Record in offset %d in Block 1: id=%d, city=%s, name=%s, surname=%s\n", k, record.id, record.city, record.name, record.surname);
-  // }
-  int target_id = 3;
+  int target_id = 4;
   HT_PrintAllEntries(ht_info.fileDesc, &target_id);
 
   if (Check(BF_UnpinBlock(block)) < 0) {

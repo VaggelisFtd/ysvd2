@@ -16,6 +16,11 @@
   }                         \
 }
 
+int hash() {
+  
+  return 0;
+}
+
 HT_ErrorCode HT_Init() {
   //insert code here
   return HT_OK;
@@ -36,7 +41,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   return HT_OK;
 }
 
-HT_ErrorCode HT_InsertEntry(int indexDesc, Record record/*, HT_info *ht_info */) { // mporoume na ths pername k epipleon orismata
+HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) { // mporoume na ths pername k epipleon orismata ???
   
   char* data;
   BF_Block* block;
@@ -61,10 +66,10 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record/*, HT_info *ht_info */)
   // get pointer to block's 1 data
   data = BF_Block_GetData(block);
   memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
-  printf(" ht_block_info.local_depth = %d\n", ht_block_info.local_depth);
-  printf(" ht_block_info.next_block = %d\n", ht_block_info.next_block);
-  printf(" ht_block_info.num_records = %d\n", ht_block_info.num_records);
-  printf(" ht_block_info.max_records = %d\n", ht_block_info.max_records);
+  // printf(" ht_block_info.local_depth = %d\n", ht_block_info.local_depth);
+  // printf(" ht_block_info.next_block = %d\n", ht_block_info.next_block);
+  // printf(" ht_block_info.num_records = %d\n", ht_block_info.num_records);
+  // printf(" ht_block_info.max_records = %d\n", ht_block_info.max_records);
 
   // if there is enough space for the record
   // // if (ht_block_info.num_records < ht_info->max_records) { /*prepei mallon na balw to "global" max records tou bucket/block edw (an nai prepei na to orisw) -> to size opws to lew an 8umamai kala */

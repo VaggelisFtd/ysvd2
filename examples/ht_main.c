@@ -124,7 +124,6 @@ int main() {
   HT_block_info ht_block_info;
   ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
   ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
-  printf(" ht_block_info.max_records ===== %d\n", ht_block_info.max_records);
   ht_block_info.next_block = 0;
   ht_block_info.num_records = 0;
   memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
@@ -136,8 +135,6 @@ int main() {
   BF_GetBlock(ht_info.fileDesc, 1, block);
   data = BF_Block_GetData(block);
   memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
-  printf(" ht_block_info.num_records ===== %d\n", ht_block_info.num_records);
-  printf(" ht_block_info.max_records2` ===== %d\n", ht_block_info.max_records);
 
   if (Check(BF_AllocateBlock(ht_info.fileDesc, block)) < 0) {   // allocate 2nd bucket/block
     printf("Error allocating block in HT_CreateFile\n");
@@ -157,10 +154,10 @@ int main() {
   // CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc)); 
 
   Record record;
-  srand(12569874);
+  srand(time(NULL));
   int r;
   // printf("Inserting %d Entries\n", MAX_RECORDS);
-  printf("Inserting 2 Entries\n");
+  printf("Inserting 5 Entries\n");
   // for (int id = 0; id < MAX_RECORDS; ++id) {
   for (int id = 0; id < 5; ++id) {
     // create a record
@@ -172,40 +169,16 @@ int main() {
     r = rand() % 10;
     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
 
-
-
     CALL_OR_DIE(HT_InsertEntry(ht_info.fileDesc, record));
     // CALL_OR_DIE(HT_InsertEntry(indexDesc, randomRecord())); // cant define randomRecord() for some reason...
   }
 
 
-  // try to read the 2 records i put in 1st block
-  // if ((BF_GetBlock(ht_info.fileDesc, 1, block)) < 0) {
-  if ((BF_GetBlock(indexDesc, 1, block)) < 0) {
-    printf("Error getting block in HT_InsertEntry\n");     // kanei Seg an dn uparxei
-    return -1;
-  }
-  // get pointer to block's 1 data
-  data = BF_Block_GetData(block);
-  // get the metadata of this block
-  memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
-  
-  // int target_id = 4;
-  // HT_PrintAllEntries(ht_info.fileDesc, &target_id);  // print specific id
-  HT_PrintAllEntries(ht_info.fileDesc, NULL);           // print all
-
-  if (Check(BF_UnpinBlock(block)) < 0) {
-    printf("Error allocating block in HT_CreateFile\n");
-    return -1;
-  }
-
-
-
   // printf("RUN PrintAllEntries\n");
-  // int id = rand() % MAX_RECORDS;
-  // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
-  //CALL_OR_DIE(HT_PrintAllEntries(indexDesc, NULL));
-
+  // int target_id = 4;
+  // int target_id = rand() % MAX_RECORDS;
+  // HT_PrintAllEntries(ht_info.fileDesc, &target_id);  // print specific id
+  CALL_OR_DIE(HT_PrintAllEntries(ht_info.fileDesc, NULL));           // print all
 
   // CALL_OR_DIE(HT_CloseFile(indexDesc));
   

@@ -30,6 +30,9 @@ typedef struct {
 	int next_block;       			// pointer to the next block // SOOOOS - mhpws prepei na ginei int* ???
 } HT_block_info;
 
+int hash(int id, int buckets);		// να τις βαλω σε αλλο αρχείο!!!
+int hash2(int id, int buckets);
+
 // typedef struct Bucket{
 	// int local_depth; // new - mallon prepei na einai edw???
 	// int record_count;

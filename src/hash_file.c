@@ -16,9 +16,12 @@
   }                         \
 }
 
-int hash() {
-  
-  return 0;
+// Hash Function
+int hash(int id, int buckets){
+    return (id * (id+3)) % buckets;
+}
+int hash2(int id, int buckets){
+    return id % buckets;
 }
 
 HT_ErrorCode HT_Init() {

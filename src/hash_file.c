@@ -40,38 +40,56 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record/*, HT_info *ht_info */)
   
   char* data;
   BF_Block* block;
+  HT_info ht_info;
   HT_block_info ht_block_info;
-  // printf(" =========== \n");
-  // if ((BF_GetBlock(indexDesc, 1, block)) < 0) {
-  //   printf("Error getting block in HT_InsertEntry\n");
-  //   return -1;
-  // }
-  // // get pointer to block's 1 data
-  // printf(" =========== \n");
-  // data = BF_Block_GetData(block);
-  // // get the metadata of this block
-  // printf(" =========== \n");
-  // memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
-  // printf(" =========== \n");
-  // // if there is enough space for the record
-  // // if (ht_block_info.num_records < ht_info->max_records) { /*prepei mallon na balw to max records tou bucket/block edw -> to size opws to lew an 8umamai kala */
-  // if (ht_block_info.num_records < ht_block_info.max_records) {
-  //   // insert the record in the last position (for records) in the block
-  //   memcpy(data + sizeof(Record) * ht_block_info.num_records, &record, sizeof(Record));
+  BF_Block_Init(&block);
+  if ((BF_GetBlock(indexDesc, 0, block)) < 0) {
+    printf("Error getting block in HT_InsertEntry\n");
+    return -1;
+  }
 
-  //   // this block's data changed, so we update its hp_block_indo
-  //   ht_block_info.num_records++;
+  // get pointer to block's 0 data
+  data = BF_Block_GetData(block);
+  // get the metadata of this block so that we can access ht_info.fileDesc
+  memcpy(&ht_info, data, sizeof(HT_info));
 
-  //   // copy the updated hp_info at the end of the block
-  //   memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
 
-  //   // write the block back on disc
-  //   BF_Block_SetDirty(block);
-  //   if ((BF_UnpinBlock(block)) < 0) {
-  //     printf("Error unpinning block in HT_InsertEntry\n");
-  //     return -1;
-  //   }
-  // }
+  if ((BF_GetBlock(ht_info.fileDesc, 1, block)) < 0) {
+    printf("Error getting block in HT_InsertEntry\n");
+    return -1;
+  }
+  // get pointer to block's 1 data
+  data = BF_Block_GetData(block);
+  memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
+  printf(" ht_block_info.local_depth = %d\n", ht_block_info.local_depth);
+  printf(" ht_block_info.next_block = %d\n", ht_block_info.next_block);
+  printf(" ht_block_info.num_records = %d\n", ht_block_info.num_records);
+  printf(" ht_block_info.max_records = %d\n", ht_block_info.max_records);
+
+  // if there is enough space for the record
+  // // if (ht_block_info.num_records < ht_info->max_records) { /*prepei mallon na balw to "global" max records tou bucket/block edw (an nai prepei na to orisw) -> to size opws to lew an 8umamai kala */
+  if (ht_block_info.num_records < ht_block_info.max_records) {
+    // insert the record in the last position (for records) in the block
+    printf(" record.id = %d\n", record.id);
+    printf(" record.name = %s\n", record.name);
+    printf(" record.surname = %s\n", record.surname);
+    printf(" record.city = %s\n", record.city);
+    memcpy(data + sizeof(Record) * ht_block_info.num_records, &record, sizeof(Record));
+
+    // this block's data changed, so we update its hp_block_indo
+    // maybe more have to change here
+    ht_block_info.num_records++;
+
+    // copy the updated hp_info at the end of the block
+    memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
+
+    // write the block back on disc
+    BF_Block_SetDirty(block);
+    if ((BF_UnpinBlock(block)) < 0) {
+      printf("Error unpinning block in HT_InsertEntry\n");
+      return -1;
+    }
+  }
   // else {
   //   // there is not enough space
   //   if ((BF_UnpinBlock(block)) < 0) {
@@ -83,13 +101,81 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record/*, HT_info *ht_info */)
   //   // new_block_needed = true;
   // }
 
-  // BF_Block_Destroy(&block);
+  BF_Block_Destroy(&block);
 
   return HT_OK;
 }
 
 HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
-  //insert code here
+
+  void* data;
+  BF_Block* block;
+  BF_Block_Init(&block);
+  HT_info ht_info;
+  HT_block_info ht_block_info;
+  Record record;
+
+  if ((BF_GetBlock(indexDesc, 0, block)) < 0) {
+    printf("Error getting block in HT_InsertEntry\n");
+    return -1;
+  }
+
+  // get pointer to block's 0 data
+  data = BF_Block_GetData(block);
+  // get the metadata of this block so that we can access ht_info.fileDesc
+  memcpy(&ht_info, data, sizeof(HT_info));
+
+  // Firstly get the total num of blocks in heap file
+  int total_blocks;
+  if ((BF_GetBlockCounter(ht_info.fileDesc, &total_blocks)) < 0) {
+    printf("Error getting num of blocks in HP_InsertEntry\n");
+    return -1;
+  }
+
+  // Unpin block 0 since we dont need it anymore
+  if ((BF_UnpinBlock(block)) < 0) {
+    printf("Error unpinning block in HT_InsertEntry\n");
+    return -1;
+  }
+
+  // for (int i=1 ; i<total_blocks ; i++) {
+  for (int i=1 ; i<2 ; i++) {
+    // Bring this block to memory
+    if ((BF_GetBlock(ht_info.fileDesc, i, block)) < 0) {
+      return -1;
+    }
+
+    // get pointer to this block's data
+    data = BF_Block_GetData(block);
+
+    // get the metadata of this last block
+    memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
+
+    // for every record in this block
+    for(int k = 0 ; k < ht_block_info.num_records * sizeof(Record) ; k = k + sizeof(Record)) {      
+      // copy in our variable record, the contents of the current record we are reading
+      memcpy(&record, data + k, sizeof(Record));
+
+      // check if it's the one we are looking for
+      // printf("record.id = %d\n", record.id);
+      // printf("id = %d\n", id);
+      if (record.id == *id) {
+        // we store as "number of total blocks read" the numbber of the block we just found the last occurance of the id we are searching for
+        // num_blocks_read = i;
+        // we print it each time it occures
+        printf("Record in offset %d in Block 1: id=%d, city=%s, name=%s, surname=%s\n", k, record.id, record.city, record.name, record.surname);
+      }
+    }
+
+    // Write babck on disk the block we just read
+    if ((BF_UnpinBlock(block)) < 0) {
+      printf("Error unpinning block in HP_GetAllEntries\n");
+      return -1;
+    }
+  }
+
+  BF_Block_Destroy(&block);
+
   return HT_OK;
 }
 

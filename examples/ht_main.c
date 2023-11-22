@@ -88,19 +88,19 @@ int main() {
   void *data;
 
   if (Check(BF_CreateFile(FILE_NAME)) < 0) {
-  printf("Error creating file: %s in HP_CreateFile\n", FILE_NAME);
+  printf("Error creating file: %s in HT_CreateFile\n", FILE_NAME);
   return -1;
   }
 
   if (Check(BF_OpenFile(FILE_NAME, &ht_info.fileDesc)) < 0) {
-    printf("Error opening file: %s in HP_CreateFile\n", FILE_NAME);
+    printf("Error opening file: %s in HT_CreateFile\n", FILE_NAME);
     return -1;
   }
 
   BF_Block_Init(&block);
 
   if (Check(BF_AllocateBlock(ht_info.fileDesc, block)) < 0) {
-    printf("Error allocating block in HP_CreateFile\n");
+    printf("Error allocating block in HT_CreateFile\n");
     return -1;
   }
 
@@ -112,12 +112,12 @@ int main() {
   memcpy(headblock, &ht_info, sizeof(HT_info));
   BF_Block_SetDirty(block);
   if (Check(BF_UnpinBlock(block)) < 0) {
-    printf("Error allocating block in HP_CreateFile\n");
+    printf("Error allocating block in HT_CreateFile\n");
     return -1;
   }
 
   if (Check(BF_AllocateBlock(ht_info.fileDesc, block)) < 0) {   // allocate 1st bucket/block
-    printf("Error allocating block in HP_CreateFile\n");
+    printf("Error allocating block in HT_CreateFile\n");
     return -1;
   }
   data = BF_Block_GetData(block);
@@ -130,7 +130,7 @@ int main() {
   memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
   BF_Block_SetDirty(block);
   if (Check(BF_UnpinBlock(block)) < 0) {
-    printf("Error allocating block in HP_CreateFile\n");
+    printf("Error allocating block in HT_CreateFile\n");
     return -1;
   }
   BF_GetBlock(ht_info.fileDesc, 1, block);
@@ -140,7 +140,7 @@ int main() {
   printf(" ht_block_info.max_records2` ===== %d\n", ht_block_info.max_records);
 
   if (Check(BF_AllocateBlock(ht_info.fileDesc, block)) < 0) {   // allocate 2nd bucket/block
-    printf("Error allocating block in HP_CreateFile\n");
+    printf("Error allocating block in HT_CreateFile\n");
     return -1;
   }
   data = BF_Block_GetData(block);
@@ -151,7 +151,7 @@ int main() {
   memcpy(data, &ht_block_info, sizeof(HT_block_info));
   BF_Block_SetDirty(block);
   if (Check(BF_UnpinBlock(block)) < 0) {
-    printf("Error allocating block in HP_CreateFile\n");
+    printf("Error allocating block in HT_CreateFile\n");
     return -1;
   }
   // CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc)); 
@@ -194,7 +194,7 @@ int main() {
   HT_PrintAllEntries(ht_info.fileDesc, &target_id);
 
   if (Check(BF_UnpinBlock(block)) < 0) {
-    printf("Error allocating block in HP_CreateFile\n");
+    printf("Error allocating block in HT_CreateFile\n");
     return -1;
   }
 
@@ -214,7 +214,7 @@ int main() {
   //   return -1;
   // }
   if (Check(BF_CloseFile(ht_info.fileDesc)) < 0) { // kanei automata Pin
-    printf("Error closing fd in HP_CloseFile\n");
+    printf("Error closing fd in HT_CloseFile\n");
     return -1;
   }
   BF_Close();

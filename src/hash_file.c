@@ -128,7 +128,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
   // Firstly get the total num of blocks in heap file
   int total_blocks;
   if ((BF_GetBlockCounter(ht_info.fileDesc, &total_blocks)) < 0) {
-    printf("Error getting num of blocks in HP_InsertEntry\n");
+    printf("Error getting num of blocks in HT_InsertEntry\n");
     return -1;
   }
 
@@ -169,7 +169,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 
     // Write babck on disk the block we just read
     if ((BF_UnpinBlock(block)) < 0) {
-      printf("Error unpinning block in HP_GetAllEntries\n");
+      printf("Error unpinning block in HT_GetAllEntries\n");
       return -1;
     }
   }

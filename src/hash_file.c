@@ -159,10 +159,15 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
       // check if it's the one we are looking for
       // printf("record.id = %d\n", record.id);
       // printf("id = %d\n", id);
-      if (record.id == *id) {
-        // we store as "number of total blocks read" the numbber of the block we just found the last occurance of the id we are searching for
-        // num_blocks_read = i;
-        // we print it each time it occures
+      if (id != NULL) {
+        if (record.id == *id) {
+          // we store as "number of total blocks read" the numbber of the block we just found the last occurance of the id we are searching for
+          // num_blocks_read = i;
+          // we print it each time it occures
+          printf("Record in offset %d in Block %d: id=%d, name=%s, surname=%s, city=%s\n", k, i, record.id, record.name, record.surname, record.city);
+        }
+      }
+      else {
         printf("Record in offset %d in Block %d: id=%d, name=%s, surname=%s, city=%s\n", k, i, record.id, record.name, record.surname, record.city);
       }
     }

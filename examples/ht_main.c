@@ -190,8 +190,9 @@ int main() {
   // get the metadata of this block
   memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
   
-  int target_id = 4;
-  HT_PrintAllEntries(ht_info.fileDesc, &target_id);
+  // int target_id = 4;
+  // HT_PrintAllEntries(ht_info.fileDesc, &target_id);  // print specific id
+  HT_PrintAllEntries(ht_info.fileDesc, NULL);           // print all
 
   if (Check(BF_UnpinBlock(block)) < 0) {
     printf("Error allocating block in HT_CreateFile\n");

@@ -28,11 +28,9 @@ int hash_function(int id, int buckets) // hash function
 
 HT_ErrorCode HT_Init()
 {
-  int i;
-
   CALL_BF(BF_Init(LRU));
 
-  for (i = 0; i < MAX_OPEN_FILES; i++)
+  for (int i = 0; i < MAX_OPEN_FILES; i++)
   {
     HT_table[i] = NULL;
   }
@@ -42,18 +40,12 @@ HT_ErrorCode HT_Init()
 
 HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 {
-  // Open files are at maximum - we can't create more     // create h open???????????????????
-  if (file_count == MAX_OPEN_FILES)
-  {
-    return HT_ERROR;
-  }
-
   HT_info ht_info;
-  BF_Block *block;
-  BF_Block *ht_block;
-  BF_Block *next_ht_block;
-  void *data;
-  int file_desc, N, required, i;
+  BF_Block* block;
+  BF_Block* ht_block;
+  BF_Block* next_ht_block;
+  void* data;
+  int file_desc, N, required_blocks, i;
 
   CALL_BF(BF_CreateFile(filename));
   CALL_BF(BF_OpenFile(filename, ht_info.fileDesc));
@@ -65,10 +57,11 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 
   data = BF_Block_GetData(block);
 
+  // na doume analoga me ta structs 
   ht_info.is_ht = true;
   ht_info.global_depth = depth;
   ht_info.ht_id = -1;
-  ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record); // floor?
+  ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record); // floor? --> bfr
 
   // HASH TABLE BLOCK --> second
   /*----------------------------------------------------------------------------------------------------------------------------*/
@@ -87,20 +80,22 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   //  memcpy
 
   // Hash Table can be stored in multiple blocks --> Create & Initialize more if needed
-  required = ceil(N / ht_info.max_records);
+  required_blocks = ceil(N / ht_info.max_records);
 
-  while (required > 1)
-  {
-    BF_Block_Init(&next_ht_block);
-    CALL_BF(BF_AllocateBlock(file_desc, next_ht_block));
+  if (required_blocks > 1){     //if we need more blocks (we already have 1 ht block)
+    for(i=0; i<required_blocks; i++){
+      BF_Block_Init(&next_ht_block);
+      CALL_BF(BF_AllocateBlock(file_desc, next_ht_block));
 
-    // memcpy
+      // memcpy
 
-    BF_Block_SetDirty(next_ht_block);
-    CALL_BF(BF_UnpinBlock(next_ht_block));
+      BF_Block_SetDirty(next_ht_block);
+      CALL_BF(BF_UnpinBlock(next_ht_block));
 
-    // next_ht_block=
+      next_ht_block = ht_block;
+    }
   }
+
   /*----------------------------------------------------------------------------------------------------------------------------*/
 
   // Write meta-data values to meta-data block
@@ -126,6 +121,12 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 
 HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
 {
+
+  // Open files are at maximum - we can't open more
+  if (file_count == MAX_OPEN_FILES)
+  {
+    return HT_ERROR;
+  }
 
   // elegxos edw h sthn create an xwraei?
 

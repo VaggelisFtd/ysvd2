@@ -132,6 +132,7 @@ int main() {
     printf("Error allocating block in HT_CreateFile\n");
     return -1;
   }
+  
   BF_GetBlock(ht_info.fileDesc, 1, block);
   data = BF_Block_GetData(block);
   memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));

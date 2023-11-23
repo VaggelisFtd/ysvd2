@@ -26,15 +26,16 @@ typedef struct {
 	int buckets; // mallon prepei na uparxei, mhpws k 8elei na xekinaei me allo ari8mo buckets kapoio arxeio (ara dn ginetai me define gt 8a einai idio se ola)
 } HT_info;
 
-// typedef struct {
-// 	bool is_ht;					// TRUE is ht file
-//     int fileDesc;              	// identifier number for opening file from block
-// 	int global_depth;
-// 	int ht_id;					// block id of fisrt ht block
-// 	//int* ht_array;				// hash table array - contains int-ids of blocks/buckets
-//     int max_records;            // max number of records that can be stored
-// 	// int max_HT;					// max number of entries in each ht block
-// } HT_info;
+/* typedef struct {
+	bool is_ht;					// TRUE is ht file
+    int fileDesc;              	// identifier number for opening file from block
+	int global_depth;
+	int ht_id;					// block id of fisrt ht block
+	//int* ht_array;				// hash table array - contains int-ids of blocks/buckets
+    int max_records;            // max number of records that can be stored
+	// int max_HT;					// max number of entries in each ht block
+} HT_info;
+ */
 
 typedef struct {
     int num_records;                // number of records in this block
@@ -43,20 +44,20 @@ typedef struct {
 	int next_block;       			// pointer to the next block // SOOOOS - mhpws prepei na ginei int* ???
 } HT_block_info;
 
-// typedef struct Bucket{
-// 	int local_depth;			// if local_depth < global-depth -> no need to double the hash-table, just allocate a new *block?/bucket?*
-// 	int record_count;
-// 	int bucket_size;
-// 	Record records[MAX_RECORDS]; 
-// } Bucket;
+/* typedef struct Bucket{
+	int local_depth;			// if local_depth < global-depth -> no need to double the hash-table, just allocate a new *block?/bucket?*
+	int record_count;
+	int bucket_size;
+	Record records[MAX_RECORDS]; 
+} Bucket;
 
-// typedef struct HashTable {
-// 	BF_Block* block; 		// pointer to a block [that corresponds to a bucket]
-// };
+typedef struct HashTable {
+	BF_Block* block; 		// pointer to a block [that corresponds to a bucket]
+};
+*/
 
 // typedef struct HashTable_Array {	// ?????????
 // 	int buckets[];
-	
 // }
 
 /*

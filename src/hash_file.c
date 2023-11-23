@@ -40,7 +40,7 @@ HT_ErrorCode HT_Init() {
 
 HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
-  // Open files are at maximum - we can't create more
+  // Open files are at maximum - we can't create more     // create h open???????????????????
   if (file_count == MAX_OPEN_FILES) { return HT_ERROR; }
 
   HT_info ht_info;

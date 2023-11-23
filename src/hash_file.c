@@ -120,18 +120,45 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
 HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   
-  // elegxos edw h sthn create
+  // elegxos edw h sthn create an xwraei?
+
+  HT_info *ht_info;
+  BF_Block* block;
+  //void* data;
 
   CALL_BF(BF_OpenFile(fileName, indexDesc));
 
-  //vres thesi k vale to arxeio
+  BF_Block_Init(&block);
 
+  CALL_BF(BF_GetBlock(*indexDesc, 0, block));
+
+  //vres thesi k vale to data
+
+  for (int i = 0; i < MAX_OPEN_FILES; i++)
+  {
+    if (HT_table[i] == NULL) 
+    { 
+      //thelei malloc??????
+      ht_info = BF_Block_GetData(block); //prin: ht_info = data;
+      //memcpy?
+      *indexDesc = i; 
+      break; 
+    }
+    if (i==MAX_OPEN_FILES){ //edw h sthn create????
+      return HT_ERROR;
+    }
+  }
+
+  CALL_BF(BF_UnpinBlock(block));
+  BF_Block_Destroy(&block);
 
   return HT_OK;
 }
 
 HT_ErrorCode HT_CloseFile(int indexDesc) {
-  //insert code here
+  
+  CALL_BF(BF_CloseFile(indexDesc));
+
   return HT_OK;
 }
 

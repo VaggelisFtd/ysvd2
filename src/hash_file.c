@@ -21,9 +21,17 @@
 static int file_count;
 HT_info *HT_table[MAX_OPEN_FILES]; // hash table for open files
 
-int hash_function(int id, int buckets) // hash function
-{
-  return id % buckets;
+// int hash_function(int id, int buckets) // hash function
+// {
+//   return id % buckets;
+// }
+
+// Hash Function
+int hash(int id, int buckets){
+    return (id * (id+3)) % buckets;
+}
+int hash2(int id, int buckets){
+    return id % buckets;
 }
 
 HT_ErrorCode HT_Init()

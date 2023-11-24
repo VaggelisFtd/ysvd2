@@ -70,6 +70,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check
   ht_info.global_depth = depth;
   ht_info.ht_id = -1;
   ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record); // floor? --> bfr
+  //ht_info.max_HT = 
 
   // HASH TABLE BLOCK --> second
   /*----------------------------------------------------------------------------------------------------------------------------*/
@@ -140,8 +141,6 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
     return HT_ERROR;
   }
 
-  // elegxos edw h sthn create an xwraei?
-
   HT_info *ht_info;
   BF_Block *block;
   // void* data;
@@ -159,6 +158,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
     if (HT_table[i] == NULL)
     {
       // thelei malloc??????
+      HT_table[i] = (HT_info*)malloc(sizeof(HT_info));
       ht_info = BF_Block_GetData(block); // prin: ht_info = data;
       // memcpy?
       *indexDesc = i;

@@ -30,7 +30,7 @@ Insert:
                 - Double ht_arrays size (new_size = old_size * 2)
                 - make sure it is stored correctly updating blocks containing the ht_array using ht_info (next_block ect.)
                 - For (i = old_size ; i< new_size ; i++) {
-                -   new ht pointer (points to block with id:) = i - old_size  --> ara o 1os kainourios pointer deixnei ekei pou edeixne to 0, o 2os to 1 klp, opws k to deixnei stis diafaneies
+                -   new ht_array[i] (points to block with id:) = ht_array[i - old_size]  --> ara o 1os kainourios pointer deixnei ekei pou edeixne to 0, o 2os to 1 klp, opws k to deixnei stis diafaneies
                 - }
                 - global_depth++;
                 - for each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (with 1 more bucket this time)

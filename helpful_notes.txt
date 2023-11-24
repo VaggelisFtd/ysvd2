@@ -1,4 +1,46 @@
 Insert:
+    // Check if bucket/block has enough space for he Record
+    1) if there is enough space (local deapth < global_depth)
+        a) place the record as last in this bucket/block
+    2) if there is not enough space (local deapth == global_depth)
+        a) allocate a new block
+        --- update ht_info total_blocks++ (gia na to xrhsimopoihsoume otan xanakaloume thn insert sto bhma 2bi ???)
+        // edw einai to duskolo
+        b) Check if more than 1 (K>1) ht_array indexes point to the FULL BLOCK (lets assume K pointers to FULL BLOCK)
+            i) if yes
+                // - Keep the (first) K/2 pointers from ht_array still pointing to the same FULL BLOCK
+                // edw na dw ti kanoume?
+                // - and make the other (last) K%2 point to the newly allocated block
+                // Pick the 2nd? / last? / another pointer from the rest pointing to the same FULL BLOCK and make it point to the newly allocated block
+                // then
+                // pws xanabazw meta ta hdh uparxonta records (kai pws k to kainourio)?
+                // mhpws gia osa records exei to FULL BLOCK xanakalw thn insert (se For) wste na ginoun re-hashed me th new hash_funciton
+                // (pou kanei % perissotera buckes pleon)?
+                - 
+                // h pio apla (epeidh mallon to parapanw ginetai handle (dld isomoirazontai oi deiktes) sto IF NOT apo katw)
+                - Make the CURRENT POINTER point to the newly allocated block (keeping all other K pointers pointing to same block as before)
+                - for each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (with more buckets this time)
+                - FULL BLOCK -> local_depth++;
+                - newly allocated block -> local_depth++;
+            ii) if not
+                // 
+                - Double ht_arrays size
+                - make sure it is stored correctly updating blocks containing the ht_array using ht_info
+                
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // Check buckets data
     1) if bucket has no records
         a) Allocate first block

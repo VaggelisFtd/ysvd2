@@ -19,16 +19,21 @@ Insert:
                 - 
                 // h pio apla (epeidh mallon to parapanw ginetai handle (dld isomoirazontai oi deiktes) sto IF NOT apo katw)
                 - Make the CURRENT POINTER point to the newly allocated block (keeping all other K pointers pointing to same block as before)
-                - for each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (with more buckets this time)
-                - FULL BLOCK -> local_depth++;
-                - newly allocated block -> local_depth++;
+                - for each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (with 1 more bucket this time)
+                - ! FULL BLOCK -> local_depth++;
+                - ! newly allocated block -> local_depth = FULL BLOCK -> local_depth (ananeomeno kata +1 pleon apo thn prohgoumenh grammh);
+                    (8a 8elame na kaname local_depth++, alla den exei local_depth, ara pairnoume to antistoixo tou FULL BLOCK)
             ii) if not
-                // 
-                - Double ht_arrays size
-                - make sure it is stored correctly updating blocks containing the ht_array using ht_info
-                
-
-
+                //
+                - old_size = hold "old" ht_arrays size 
+                - Double ht_arrays size (new_size = old_size * 2)
+                - make sure it is stored correctly updating blocks containing the ht_array using ht_info (next_block ect.)
+                - For (i = old_size ; i< new_size ; i++) {
+                -   new ht pointer (points to block with id:) = i - old_size  --> ara o 1os kainourios pointer deixnei ekei pou edeixne to 0, o 2os to 1 klp, opws k to deixnei stis diafaneies
+                - }
+                - global_depth++;
+                - for each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (with 1 more bucket this time)
+        end b)
 
 
 

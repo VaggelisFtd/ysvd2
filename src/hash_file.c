@@ -70,7 +70,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check
   ht_info.global_depth = depth;
   ht_info.ht_id = -1;
   ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record); // floor? --> bfr
-  //ht_info.max_HT = 
+  ht_info.max_HT = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(HT_block_info); // mallon????
 
   // HASH TABLE BLOCK --> second
   /*----------------------------------------------------------------------------------------------------------------------------*/

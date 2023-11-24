@@ -1,6 +1,8 @@
 #ifndef HASH_FILE_H
 #define HASH_FILE_H
 
+#define MAX_RECORDS (BF_BLOCK_SIZE / sizeof(Record))
+
 typedef enum HT_ErrorCode {
   HT_OK,
   HT_ERROR
@@ -12,6 +14,51 @@ typedef struct Record {
 	char surname[20];
 	char city[20];
 } Record;
+
+/* HT_info struct holds metadata associated with the hash file */
+typedef struct {
+	bool is_ht;					// TRUE is ht file
+    int fileDesc;              	// identifier number for opening file from block
+	int global_depth;
+	int* ht_array;				// hash table array - contains int-ids of blocks/buckets
+	int ht_array_length;  	// new - na dw an xreiazetai
+	int ht_array_head;		// new - na dw an xreiazetai
+	int buckets; // mallon prepei na uparxei, mhpws k 8elei na xekinaei me allo ari8mo buckets kapoio arxeio (ara dn ginetai me define gt 8a einai idio se ola)
+} HT_info;
+
+/* typedef struct {
+	bool is_ht;					// TRUE is ht file
+    int fileDesc;              	// identifier number for opening file from block
+	int global_depth;
+	int ht_id;					// block id of fisrt ht block
+	//int* ht_array;				// hash table array - contains int-ids of blocks/buckets
+    int max_records;            // max number of records that can be stored
+	// int max_HT;					// max number of entries in each ht block
+} HT_info;
+ */
+
+typedef struct {
+    int num_records;                // number of records in this block
+	int local_depth;
+	int max_records;				// was (block/bucket)_size
+	int next_block;       			// pointer to the next block // SOOOOS - mhpws prepei na ginei int* ???
+} HT_block_info;
+
+/* typedef struct Bucket{
+	int local_depth;			// if local_depth < global-depth -> no need to double the hash-table, just allocate a new *block?/bucket?*
+	int record_count;
+	int bucket_size;
+	Record records[MAX_RECORDS]; 
+} Bucket;
+
+typedef struct HashTable {
+	BF_Block* block; 		// pointer to a block [that corresponds to a bucket]
+};
+*/
+
+// typedef struct HashTable_Array {	// ?????????
+// 	int buckets[];
+// }
 
 /*
  * Η συνάρτηση HT_Init χρησιμοποιείται για την αρχικοποίηση κάποιον δομών που μπορεί να χρειαστείτε. 

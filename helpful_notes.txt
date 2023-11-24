@@ -2,6 +2,7 @@ Insert:
     // Check if bucket/block has enough space for he Record
     1) if there is enough space (local deapth < global_depth)
         a) place the record as last in this bucket/block
+    end 1)
     2) if there is not enough space (local deapth == global_depth)
         a) allocate a new block
         --- update ht_info total_blocks++ (gia na to xrhsimopoihsoume otan xanakaloume thn insert sto bhma 2bi ???)
@@ -34,7 +35,7 @@ Insert:
                 - global_depth++;
                 - for each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (with 1 more bucket this time)
         end b)
-
+    end 2)
 
 
 

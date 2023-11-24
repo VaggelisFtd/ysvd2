@@ -18,7 +18,7 @@
     }                         \
   }
 
-static int file_count;
+static int file_count=0;
 HT_info *HT_table[MAX_OPEN_FILES]; // hash table for open files
 
 // int hash_function(int id, int buckets) // hash function
@@ -46,7 +46,7 @@ HT_ErrorCode HT_Init()
   return HT_OK;
 }
 
-HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
+HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check for max open files, we can create as many as we want, but we can only have 20 open
 {
   HT_info ht_info;
   BF_Block* block;
@@ -70,6 +70,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   ht_info.global_depth = depth;
   ht_info.ht_id = -1;
   ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record); // floor? --> bfr
+  //ht_info.max_HT = 
 
   // HASH TABLE BLOCK --> second
   /*----------------------------------------------------------------------------------------------------------------------------*/
@@ -91,11 +92,15 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   required_blocks = ceil(N / ht_info.max_records);
 
   if (required_blocks > 1){     //if we need more blocks (we already have 1 ht block)
-    for(i=0; i<required_blocks; i++){
-      BF_Block_Init(&next_ht_block);
+    BF_Block_Init(&next_ht_block);
+    for(i=1; i<required_blocks; i++){
       CALL_BF(BF_AllocateBlock(file_desc, next_ht_block));
 
       // memcpy
+
+      //initialize ht block
+      data = BF_Block_GetData(next_ht_block);
+      //memcpy
 
       BF_Block_SetDirty(next_ht_block);
       CALL_BF(BF_UnpinBlock(next_ht_block));
@@ -106,7 +111,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 
   /*----------------------------------------------------------------------------------------------------------------------------*/
 
-  // Write meta-data values to meta-data block
+  // Write meta-data to meta-data block (1st)
   memcpy(data, &ht_info, sizeof(HT_info));
 
   // Set blocks as dirty & unpin them, so that they are saved in disc
@@ -122,7 +127,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   // Close the file
   CALL_BF(BF_CloseFile(ht_info.fileDesc));
 
-  file_count++; // edw h sthn open?????
+  //file_count++; // edw h sthn open?????
 
   return HT_OK;
 }
@@ -135,8 +140,6 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
   {
     return HT_ERROR;
   }
-
-  // elegxos edw h sthn create an xwraei?
 
   HT_info *ht_info;
   BF_Block *block;
@@ -155,6 +158,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
     if (HT_table[i] == NULL)
     {
       // thelei malloc??????
+      HT_table[i] = (HT_info*)malloc(sizeof(HT_info));
       ht_info = BF_Block_GetData(block); // prin: ht_info = data;
       // memcpy?
       *indexDesc = i;
@@ -168,6 +172,8 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
 
   CALL_BF(BF_UnpinBlock(block));
   BF_Block_Destroy(&block);
+
+  file_count++;
 
   return HT_OK;
 }

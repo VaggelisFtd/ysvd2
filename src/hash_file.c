@@ -17,42 +17,36 @@
       return HT_ERROR;        \
     }                         \
   }
-
-static int file_count=0;
+// global vars maybe not needed
+static int file_count = 0;
 HT_info *HT_table[MAX_OPEN_FILES]; // hash table for open files
 
-// int hash_function(int id, int buckets) // hash function
-// {
-//   return id % buckets;
-// }
-
 // Hash Function
-int hash(int id, int buckets){
-    return (id * (id+3)) % buckets;
+int hash(int id, int buckets)
+{
+  return (id * (id + 3)) % buckets; // ask vaggelis
 }
-int hash2(int id, int buckets){
-    return id % buckets;
+int hash2(int id, int buckets)
+{
+  return id % buckets;
 }
 
 HT_ErrorCode HT_Init()
 {
   CALL_BF(BF_Init(LRU));
-
   for (int i = 0; i < MAX_OPEN_FILES; i++)
-  {
     HT_table[i] = NULL;
-  }
 
   return HT_OK;
 }
 
-HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check for max open files, we can create as many as we want, but we can only have 20 open
+HT_ErrorCode HT_CreateIndex(const char *filename, int depth) // we don't check for max open files, we can create as many as we want, but we can only have 20 open
 {
   HT_info ht_info;
-  BF_Block* block;
-  BF_Block* ht_block;
-  BF_Block* next_ht_block;
-  void* data;
+  BF_Block *block;
+  BF_Block *ht_block;
+  BF_Block *next_ht_block;
+  void *data;
   int file_desc, N, required_blocks, i;
 
   CALL_BF(BF_CreateFile(filename));
@@ -65,12 +59,12 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check
 
   data = BF_Block_GetData(block);
 
-  // na doume analoga me ta structs 
+  // na doume analoga me ta structs
   ht_info.is_ht = true;
   ht_info.global_depth = depth;
   ht_info.ht_id = -1;
-  ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record); // floor? --> bfr
-  //ht_info.max_HT = 
+  ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);   // floor? --> bfr
+  ht_info.max_HT = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(HT_block_info);
 
   // HASH TABLE BLOCK --> second
   /*----------------------------------------------------------------------------------------------------------------------------*/
@@ -91,16 +85,18 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check
   // Hash Table can be stored in multiple blocks --> Create & Initialize more if needed
   required_blocks = ceil(N / ht_info.max_records);
 
-  if (required_blocks > 1){     //if we need more blocks (we already have 1 ht block)
+  if (required_blocks > 1)
+  { // if we need more blocks (we already have 1 ht block)
     BF_Block_Init(&next_ht_block);
-    for(i=1; i<required_blocks; i++){
+    for (i = 1; i < required_blocks; i++)
+    {
       CALL_BF(BF_AllocateBlock(file_desc, next_ht_block));
 
       // memcpy
 
-      //initialize ht block
+      // initialize ht block
       data = BF_Block_GetData(next_ht_block);
-      //memcpy
+      // memcpy
 
       BF_Block_SetDirty(next_ht_block);
       CALL_BF(BF_UnpinBlock(next_ht_block));
@@ -127,7 +123,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check
   // Close the file
   CALL_BF(BF_CloseFile(ht_info.fileDesc));
 
-  //file_count++; // edw h sthn open?????
+  // file_count++; // edw h sthn open?????
 
   return HT_OK;
 }
@@ -137,18 +133,15 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
 
   // Open files are at maximum - we can't open more
   if (file_count == MAX_OPEN_FILES)
-  {
     return HT_ERROR;
-  }
+  
 
   HT_info *ht_info;
   BF_Block *block;
   // void* data;
 
   CALL_BF(BF_OpenFile(fileName, indexDesc));
-
   BF_Block_Init(&block);
-
   CALL_BF(BF_GetBlock(*indexDesc, 0, block));
 
   // vres thesi k vale to data
@@ -158,7 +151,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
     if (HT_table[i] == NULL)
     {
       // thelei malloc??????
-      HT_table[i] = (HT_info*)malloc(sizeof(HT_info));
+      HT_table[i] = (HT_info *)malloc(sizeof(HT_info));
       ht_info = BF_Block_GetData(block); // prin: ht_info = data;
       // memcpy?
       *indexDesc = i;
@@ -180,9 +173,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
 
 HT_ErrorCode HT_CloseFile(int indexDesc)
 {
-
   CALL_BF(BF_CloseFile(indexDesc));
-
   return HT_OK;
 }
 

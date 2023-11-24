@@ -10,7 +10,7 @@
 #define GLOBAL_DEPTH 2   // you can change it if you want // prepei na bgei sthn telikh main
 #define FILE_NAME "data.db"
 
-int checkForError(int call)
+int checkForError(int call)  //maybe not needed
 {
   BF_ErrorCode code = call;
   if (code != BF_OK)
@@ -149,22 +149,6 @@ int main()
     return -1;
   }
   data = BF_Block_GetData(block);
-
-  /*no need arxikopoiountai panw
-  ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
-  ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
-  ht_block_info.next_block = 0;
-  ht_block_info.num_records = 0;
-
-  memcpy(data, &ht_block_info, sizeof(HT_block_info));
-  BF_Block_SetDirty(block);
-  if (checkForError(BF_UnpinBlock(block)) < 0)
-  {
-    printf("Error allocating block in HT_CreateFile\n");
-    return -1;
-  }
-  // CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc));
- */
 
   Record record;
   srand(time(NULL));

@@ -20,7 +20,8 @@ typedef struct {
 	int* ht_array;				// hash table array - contains int-ids of blocks/buckets
 	int ht_array_length;  	// new - na dw an xreiazetai
 	int ht_array_head;		// new - na dw an xreiazetai
-	int buckets; // mallon prepei na uparxei, mhpws k 8elei na xekinaei me allo ari8mo buckets kapoio arxeio (ara dn ginetai me define gt 8a einai idio se ola)
+	int starting_buckets; // mallon prepei na uparxei, mhpws k 8elei na xekinaei me allo ari8mo buckets kapoio arxeio (ara dn ginetai me define gt 8a einai idio se ola)
+	int num_buckets; // mallon prepei na uparxei, mhpws k 8elei na xekinaei me allo ari8mo buckets kapoio arxeio (ara dn ginetai me define gt 8a einai idio se ola)
 } HT_info;
 
 typedef struct {
@@ -28,6 +29,9 @@ typedef struct {
 	int local_depth;
 	int max_records;				// was (block/bucket)_size
 	int next_block;       			// pointer to the next block // SOOOOS - mhpws prepei na ginei int* ???
+	int indexes_pointed_by;			// mhpws na uparxei auto wste na briskoume grhgora posa ht_array indexes deixnoun auto to block
+									// kai na mporoume grhgora na xwrizoume auto ton ari8mo se 2 isa~ uposunola
+									// Sthn ousia dld to 8eloume apla gia na exoume to X apo to X/2 -> new block kai X%2 ->old block, pou 8a kanoume
 } HT_block_info;
 
 int hash(int id, int buckets);		// να τις βαλω σε αλλο αρχείο!!!

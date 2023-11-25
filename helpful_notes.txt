@@ -3,20 +3,21 @@ Insert:
     // ====================== UPARXEI SIGOURA AUTH H PERIPTWSH ??? -> nomizw oxi gt shmainei oti exoume ftiaxei block gia ena ht_arrayIndex
     // alla den to exoume balei na deixnei pou8ena. Emeis omws me to pou ftiaxnoume ena arrayIndex to bazoume kateu8eian na deixnei kapou
     // ekfwnhsh leei ekei pou edeixne o prohgoumenos deikths me d-1 digits ====================
+    // We should handle that in HT_CreateFile
         - create a block
         - connect it to the ht_array
         - and palce the record inside
 #    **) if bucket/block is NOT empty    // ====================== UPARXEI SIGOURA AUTH H PERIPTWSH ??? ====================
-        // Check if bucket/block has enough space for he Record
-        1) if there is enough space (local deapth < global_depth)
+        // Check if bucket/block has enough space for the Record
+        1) if there is enough space
             a) place the record as last in this bucket/block
         end 1)
-        2) if there is not enough space (local deapth == global_depth)
+        2) if there is not enough space
             a) allocate a new block
             --- update ht_info total_blocks++ (gia na to xrhsimopoihsoume otan xanakaloume thn insert sto bhma 2bi ???)
             // edw einai to duskolo
             b) Check if more than 1 (K>1) ht_array indexes point to the FULL BLOCK (lets assume K pointers to FULL BLOCK)
-                i) if yes
+                i) if yes : ht_block_info.indexes_pointed_by > 1 && (local deapth < global_depth) // sa na elegxw to idio pragma
                     // - Keep the (first) K/2 pointers from ht_array still pointing to the same FULL BLOCK
                     // edw na dw ti kanoume?
                     // - and make the other (last) K%2 point to the newly allocated block
@@ -32,14 +33,16 @@ Insert:
                     - ! FULL BLOCK -> local_depth++;
                     - ! newly allocated block -> local_depth = FULL BLOCK -> local_depth (ananeomeno kata +1 pleon apo thn prohgoumenh grammh);
                         (8a 8elame na kaname local_depth++, alla den exei local_depth, ara pairnoume to antistoixo tou FULL BLOCK)
-                ii) if not
+
+                ii) if not : ht_block_info.indexes_pointed_by == 1 && (local deapth == global_depth) // sa na elegxw to idio pragma
                     //
-                    - old_size = hold "old" ht_arrays size 
+                    - old_size = hold "old" ht_arrays size
                     - Double ht_arrays size (new_size = old_size * 2)
                     - make sure it is stored correctly updating blocks containing the ht_array using ht_info (next_block ect.)
                     - For (i = old_size ; i< new_size ; i++) {
                     -   new ht_array[i] (points to block with id:) = ht_array[i - old_size]  --> ara o 1os kainourios pointer deixnei ekei pou edeixne to 0, o 2os to 1 klp, opws k to deixnei stis diafaneies
                     - }
+                    - update each time (maybe in For above?) the ht_block_info.indexespointedBby of this block
                     - global_depth++;
                     - for each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (with 1 more bucket this time)
             end b)

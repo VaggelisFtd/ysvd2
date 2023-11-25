@@ -1,41 +1,49 @@
 Insert:
-    // Check if bucket/block has enough space for he Record
-    1) if there is enough space (local deapth < global_depth)
-        a) place the record as last in this bucket/block
-    end 1)
-    2) if there is not enough space (local deapth == global_depth)
-        a) allocate a new block
-        --- update ht_info total_blocks++ (gia na to xrhsimopoihsoume otan xanakaloume thn insert sto bhma 2bi ???)
-        // edw einai to duskolo
-        b) Check if more than 1 (K>1) ht_array indexes point to the FULL BLOCK (lets assume K pointers to FULL BLOCK)
-            i) if yes
-                // - Keep the (first) K/2 pointers from ht_array still pointing to the same FULL BLOCK
-                // edw na dw ti kanoume?
-                // - and make the other (last) K%2 point to the newly allocated block
-                // Pick the 2nd? / last? / another pointer from the rest pointing to the same FULL BLOCK and make it point to the newly allocated block
-                // then
-                // pws xanabazw meta ta hdh uparxonta records (kai pws k to kainourio)?
-                // mhpws gia osa records exei to FULL BLOCK xanakalw thn insert (se For) wste na ginoun re-hashed me th new hash_funciton
-                // (pou kanei % perissotera buckes pleon)?
-                - 
-                // h pio apla (epeidh mallon to parapanw ginetai handle (dld isomoirazontai oi deiktes) sto IF NOT apo katw)
-                - Make the CURRENT POINTER point to the newly allocated block (keeping all other K pointers pointing to same block as before)
-                - for each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (with 1 more bucket this time)
-                - ! FULL BLOCK -> local_depth++;
-                - ! newly allocated block -> local_depth = FULL BLOCK -> local_depth (ananeomeno kata +1 pleon apo thn prohgoumenh grammh);
-                    (8a 8elame na kaname local_depth++, alla den exei local_depth, ara pairnoume to antistoixo tou FULL BLOCK)
-            ii) if not
-                //
-                - old_size = hold "old" ht_arrays size 
-                - Double ht_arrays size (new_size = old_size * 2)
-                - make sure it is stored correctly updating blocks containing the ht_array using ht_info (next_block ect.)
-                - For (i = old_size ; i< new_size ; i++) {
-                -   new ht_array[i] (points to block with id:) = ht_array[i - old_size]  --> ara o 1os kainourios pointer deixnei ekei pou edeixne to 0, o 2os to 1 klp, opws k to deixnei stis diafaneies
-                - }
-                - global_depth++;
-                - for each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (with 1 more bucket this time)
-        end b)
-    end 2)
+#    *) if bucket/block is empty
+    // ====================== UPARXEI SIGOURA AUTH H PERIPTWSH ??? -> nomizw oxi gt shmainei oti exoume ftiaxei block gia ena ht_arrayIndex
+    // alla den to exoume balei na deixnei pou8ena. Emeis omws me to pou ftiaxnoume ena arrayIndex to bazoume kateu8eian na deixnei kapou
+    // ekfwnhsh leei ekei pou edeixne o prohgoumenos deikths me d-1 digits ====================
+        - create a block
+        - connect it to the ht_array
+        - and palce the record inside
+#    **) if bucket/block is NOT empty    // ====================== UPARXEI SIGOURA AUTH H PERIPTWSH ??? ====================
+        // Check if bucket/block has enough space for he Record
+        1) if there is enough space (local deapth < global_depth)
+            a) place the record as last in this bucket/block
+        end 1)
+        2) if there is not enough space (local deapth == global_depth)
+            a) allocate a new block
+            --- update ht_info total_blocks++ (gia na to xrhsimopoihsoume otan xanakaloume thn insert sto bhma 2bi ???)
+            // edw einai to duskolo
+            b) Check if more than 1 (K>1) ht_array indexes point to the FULL BLOCK (lets assume K pointers to FULL BLOCK)
+                i) if yes
+                    // - Keep the (first) K/2 pointers from ht_array still pointing to the same FULL BLOCK
+                    // edw na dw ti kanoume?
+                    // - and make the other (last) K%2 point to the newly allocated block
+                    // Pick the 2nd? / last? / another pointer from the rest pointing to the same FULL BLOCK and make it point to the newly allocated block
+                    // then
+                    // pws xanabazw meta ta hdh uparxonta records (kai pws k to kainourio)?
+                    // mhpws gia osa records exei to FULL BLOCK xanakalw thn insert (se For) wste na ginoun re-hashed me th new hash_funciton
+                    // (pou kanei % perissotera buckes pleon)?
+                    - 
+                    // h pio apla (epeidh mallon to parapanw ginetai handle (dld isomoirazontai oi deiktes) sto IF NOT apo katw)
+                    - Make the CURRENT POINTER point to the newly allocated block (keeping all other K pointers pointing to same block as before)
+                    - for each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (with 1 more bucket this time)
+                    - ! FULL BLOCK -> local_depth++;
+                    - ! newly allocated block -> local_depth = FULL BLOCK -> local_depth (ananeomeno kata +1 pleon apo thn prohgoumenh grammh);
+                        (8a 8elame na kaname local_depth++, alla den exei local_depth, ara pairnoume to antistoixo tou FULL BLOCK)
+                ii) if not
+                    //
+                    - old_size = hold "old" ht_arrays size 
+                    - Double ht_arrays size (new_size = old_size * 2)
+                    - make sure it is stored correctly updating blocks containing the ht_array using ht_info (next_block ect.)
+                    - For (i = old_size ; i< new_size ; i++) {
+                    -   new ht_array[i] (points to block with id:) = ht_array[i - old_size]  --> ara o 1os kainourios pointer deixnei ekei pou edeixne to 0, o 2os to 1 klp, opws k to deixnei stis diafaneies
+                    - }
+                    - global_depth++;
+                    - for each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (with 1 more bucket this time)
+            end b)
+        end 2)
 
 
 
@@ -46,7 +54,7 @@ Insert:
 
 
 
-
+// ===================================== LA8OS ALGORI8MOS =============================================
     // Check buckets data
     1) if bucket has no records
         a) Allocate first block

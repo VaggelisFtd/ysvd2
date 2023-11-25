@@ -32,7 +32,7 @@ typedef struct {
 	int global_depth;
 	int ht_id;					// block id of fisrt ht block
     int max_records;            // max number of records that can be stored
-	int max_HT;					// max number of entries in each ht block
+	int max_ht;					// max number of entries in each ht block
 } HT_info;
 
 

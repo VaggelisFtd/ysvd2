@@ -318,39 +318,39 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
 
 
-  if ((BF_GetBlock(ht_info.fileDesc, 1, block)) < 0) {
-    printf("Error getting block in HT_InsertEntry\n");
-    return -1;
-  }
-  // get pointer to block's 1 data
-  data = BF_Block_GetData(block);
-  memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
+  // if ((BF_GetBlock(ht_info.fileDesc, 1, block)) < 0) {
+  //   printf("Error getting block in HT_InsertEntry\n");
+  //   return -1;
+  // }
+  // // get pointer to block's 1 data
+  // data = BF_Block_GetData(block);
+  // memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
 
 
-  // if there is enough space for the record
-  // // if (ht_block_info.num_records < ht_info->max_records /* den einai orismeno akomh */ ) {
-  if (ht_block_info.num_records < ht_block_info.max_records) {
-    // insert the record in the last position (for records) in the block
-    printf(" record.id = %d\n", record.id);
-    printf(" record.name = %s\n", record.name);
-    printf(" record.surname = %s\n", record.surname);
-    printf(" record.city = %s\n", record.city);
-    memcpy(data + sizeof(Record) * ht_block_info.num_records, &record, sizeof(Record));
+  // // if there is enough space for the record
+  // // // if (ht_block_info.num_records < ht_info->max_records /* den einai orismeno akomh */ ) {
+  // if (ht_block_info.num_records < ht_block_info.max_records) {
+  //   // insert the record in the last position (for records) in the block
+  //   printf(" record.id = %d\n", record.id);
+  //   printf(" record.name = %s\n", record.name);
+  //   printf(" record.surname = %s\n", record.surname);
+  //   printf(" record.city = %s\n", record.city);
+  //   memcpy(data + sizeof(Record) * ht_block_info.num_records, &record, sizeof(Record));
 
-    // this block's data changed, so we update its hp_block_indo
-    // maybe more have to change here
-    ht_block_info.num_records++;
+  //   // this block's data changed, so we update its hp_block_indo
+  //   // maybe more have to change here
+  //   ht_block_info.num_records++;
 
-    // copy the updated hp_info at the end of the block
-    memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
+  //   // copy the updated hp_info at the end of the block
+  //   memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
 
-    // write the block back on disc
-    BF_Block_SetDirty(block);
-    if ((BF_UnpinBlock(block)) < 0) {
-      printf("Error unpinning block in HT_InsertEntry\n");
-      return -1;
-    }
-  }
+  //   // write the block back on disc
+  //   BF_Block_SetDirty(block);
+  //   if ((BF_UnpinBlock(block)) < 0) {
+  //     printf("Error unpinning block in HT_InsertEntry\n");
+  //     return -1;
+  //   }
+  // }
   // else {
   //   // there is not enough space
   //   if ((BF_UnpinBlock(block)) < 0) {

@@ -1,7 +1,7 @@
 #ifndef HASH_FILE_H
 #define HASH_FILE_H
 
-#define MAX_RECORDS (BF_BLOCK_SIZE / sizeof(Record))
+//#define MAX_RECORDS (BF_BLOCK_SIZE / sizeof(Record))
 
 typedef enum HT_ErrorCode {
   HT_OK,

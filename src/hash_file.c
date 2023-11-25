@@ -74,7 +74,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check
   int file_desc, N, required_blocks, i, curr_id;
 
   CALL_BF(BF_CreateFile(filename));
-  CALL_BF(BF_OpenFile(filename, ht_info.fileDesc));
+  CALL_BF(BF_OpenFile(filename, &ht_info.fileDesc));
 
   // META DATA BLOCK --> first
 
@@ -116,7 +116,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check
       CALL_BF(BF_AllocateBlock(file_desc, next_ht_block));
 
       // Get number (id) of the new block
-      CALL_BF(BF_GetBlockCounter(ht_info.fileDesc,curr_id));
+      CALL_BF(BF_GetBlockCounter(ht_info.fileDesc, &curr_id));
       memcpy(data, &curr_id, sizeof(int));
 
       //initialize ht block
@@ -158,6 +158,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
 
   HT_info *ht_info;
   BF_Block *block;
+  void* data;
 
   CALL_BF(BF_OpenFile(fileName, indexDesc));
 
@@ -171,7 +172,8 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
     if (HT_table[i] == NULL)
     {
       HT_table[i] = (HT_info*)malloc(sizeof(HT_info));
-      ht_info = BF_Block_GetData(block); // prin: ht_info = data;
+      data = BF_Block_GetData(block);
+      ht_info = data;
       break;
     }
   }

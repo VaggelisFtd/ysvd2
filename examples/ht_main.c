@@ -74,8 +74,8 @@ int main()
   // BF_Init(LRU);
 
   // CALL_OR_DIE(HT_Init());
-
-  HT_Init();
+  printf("main starts here\n");
+  //HT_Init();
   return 0;
 }
 

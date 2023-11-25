@@ -1,7 +1,9 @@
 #ifndef HASH_FILE_H
 #define HASH_FILE_H
 
-#define MAX_RECORDS (BF_BLOCK_SIZE / sizeof(Record))
+#define MAX_OPEN_FILES 20
+
+//#define MAX_RECORDS (BF_BLOCK_SIZE / sizeof(Record))
 
 typedef enum HT_ErrorCode {
   HT_OK,
@@ -32,7 +34,7 @@ typedef struct {
 	int global_depth;
 	int ht_id;					// block id of fisrt ht block
     int max_records;            // max number of records that can be stored
-	int max_HT;					// max number of entries in each ht block
+	int max_ht;					// max number of entries in each ht block
 } HT_info;
 
 
@@ -43,21 +45,8 @@ typedef struct {
 	int next_block;       			// pointer to the next block // SOOOOS - mhpws prepei na ginei int* ???
 } HT_block_info;
 
-/* typedef struct Bucket{
-	int local_depth;			// if local_depth < global-depth -> no need to double the hash-table, just allocate a new *block?/bucket?*
-	int record_count;
-	int bucket_size;
-	Record records[MAX_RECORDS]; 
-} Bucket;
+HT_info *Hash_table[MAX_OPEN_FILES]; // hash table for open files
 
-typedef struct HashTable {
-	BF_Block* block; 		// pointer to a block [that corresponds to a bucket]
-};
-*/
-
-// typedef struct HashTable_Array {	// ?????????
-// 	int buckets[];
-// }
 
 /*
  * Η συνάρτηση HT_Init χρησιμοποιείται για την αρχικοποίηση κάποιον δομών που μπορεί να χρειαστείτε. 

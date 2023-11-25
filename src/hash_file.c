@@ -47,6 +47,11 @@ int check_open_files()
   return HT_OK;
 }
 
+int DirtyUnpin(BF_Block* block) {
+  BF_Block_SetDirty(block);
+  CALL_BF(BF_UnpinBlock(block));
+}
+
 HT_ErrorCode HT_Init()
 {
   CALL_BF(BF_Init(LRU));
@@ -118,8 +123,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check
       data = BF_Block_GetData(next_ht_block);
       //memcpy gia max_ht --> loop apo 0 ews max_ht ++ alla ti mpainei sthn memcpy???
 
-      BF_Block_SetDirty(next_ht_block);
-      CALL_BF(BF_UnpinBlock(next_ht_block));
+      DirtyUnpin(next_ht_block);
 
       ht_block = next_ht_block; // h next_ht_block = ht_block???
     }
@@ -131,10 +135,8 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check
   memcpy(data, &ht_info, sizeof(HT_info));
 
   // Set blocks as dirty & unpin them, so that they are saved in the disc
-  BF_Block_SetDirty(block);
-  BF_Block_SetDirty(ht_block);
-  CALL_BF(BF_UnpinBlock(block));
-  CALL_BF(BF_UnpinBlock(ht_block));
+  DirtyUnpin(block);
+  DirtyUnpin(ht_block);
 
   // Call Destroy to free the memory
   BF_Block_Destroy(&block);
@@ -184,7 +186,8 @@ HT_ErrorCode HT_CloseFile(int indexDesc)
 
   CALL_BF(BF_CloseFile(indexDesc));
 
-  free(HT_table[indexDesc]); 
+  free(HT_table[indexDesc]);
+
   HT_table[indexDesc] = NULL; 
 
   return HT_OK;

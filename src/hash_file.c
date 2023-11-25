@@ -6,7 +6,7 @@
 
 #include "bf.h"
 #include "hash_file.h"
-#define MAX_OPEN_FILES 20
+// #define MAX_OPEN_FILES 20
 
 #define CALL_BF(call)         \
   {                           \
@@ -18,12 +18,7 @@
     }                         \
   }
 
-HT_info *HT_table[MAX_OPEN_FILES]; // hash table for open files
-
-// int hash_function(int id, int buckets) // hash function
-// {
-//   return id % buckets;
-// }
+//HT_info *Hash_table[MAX_OPEN_FILES]; // hash table for open files
 
 // Hash Function
 int hash(int id, int buckets){
@@ -38,7 +33,7 @@ int check_open_files()
   int i;
 
   for (i = 0; i < MAX_OPEN_FILES; i++) {
-    if (HT_table[i] == NULL) break;
+    if (Hash_table[i] == NULL) break;
   }
   if (i == MAX_OPEN_FILES){
     printf("Open files are at maximum - more files can't be opened");
@@ -58,7 +53,7 @@ HT_ErrorCode HT_Init()
 
   for (int i = 0; i < MAX_OPEN_FILES; i++)
   {
-    HT_table[i] = NULL;
+    Hash_table[i] = NULL;
   }
 
   return HT_OK;
@@ -74,6 +69,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check
   int file_desc, N, required_blocks, i, curr_id;
 
   CALL_BF(BF_CreateFile(filename));
+
   CALL_BF(BF_OpenFile(filename, &ht_info.fileDesc));
 
   // META DATA BLOCK --> first
@@ -169,9 +165,9 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
   // Find empty place and write the file's data
   for (int i = 0; i < MAX_OPEN_FILES; i++)
   {
-    if (HT_table[i] == NULL)
+    if (Hash_table[i] == NULL)
     {
-      HT_table[i] = (HT_info*)malloc(sizeof(HT_info));
+      Hash_table[i] = (HT_info*)malloc(sizeof(HT_info));
       data = BF_Block_GetData(block);
       ht_info = data;
       break;
@@ -188,9 +184,9 @@ HT_ErrorCode HT_CloseFile(int indexDesc)
 
   CALL_BF(BF_CloseFile(indexDesc));
 
-  free(HT_table[indexDesc]);
+  free(Hash_table[indexDesc]);
 
-  HT_table[indexDesc] = NULL; 
+  Hash_table[indexDesc] = NULL; 
 
   return HT_OK;
 }

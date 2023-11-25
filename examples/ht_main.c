@@ -10,16 +10,16 @@
 #define GLOBAL_DEPTH 2   // you can change it if you want // prepei na bgei sthn telikh main
 #define FILE_NAME "data.db"
 
-// int checkForError(int call)
-// {
-//   BF_ErrorCode code = call;
-//   if (code != BF_OK)
-//   {
-//     BF_PrintError(code);
-//     printf("bf_error_code = %d\n", code);
-//     return -1;
-//   }
-// }
+int checkForError(int call)
+{
+  BF_ErrorCode code = call;
+  if (code != BF_OK)
+  {
+    BF_PrintError(code);
+    printf("bf_error_code = %d\n", code);
+    return -1;
+  }
+}
 const char *names[] = {
     "Yannis",
     "Christofos",
@@ -71,11 +71,30 @@ const char *cities[] = {
 
 int main()
 {
-  // BF_Init(LRU);
+  printf("Main starts here\n\n"); //test
+  CALL_OR_DIE(HT_Init());
+  printf("Create starts here\n\n"); //test
+  CALL_OR_DIE(HT_CreateIndex(FILE_NAME, GLOBAL_DEPTH));
 
-  // CALL_OR_DIE(HT_Init());
-  printf("main starts here\n");
-  //HT_Init();
+  int indexDesc;
+  printf("Open starts here\n\n"); //test
+  CALL_OR_DIE(HT_OpenIndex(FILE_NAME,&indexDesc));
+
+  printf("Close starts here\n\n"); //test
+  CALL_OR_DIE(HT_CloseFile(indexDesc));
+
+  printf("--------------------Functions are runnable--------------------\n\n");
+
+  printf("Testing the functions:\n\n");
+
+
+  HT_info ht_info;
+  BF_Block *block;
+  void *headblock;
+  void *data;
+
+  
+
   return 0;
 }
 

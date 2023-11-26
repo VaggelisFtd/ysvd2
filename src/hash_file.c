@@ -30,7 +30,7 @@ int hash2(int id, int buckets)
   return id % buckets;
 }
 
-int check_open_files()
+int checkOpenFiles()
 {
   int i;
 
@@ -47,7 +47,7 @@ int check_open_files()
   return HT_OK;
 }
 
-int DirtyUnpin(BF_Block *block)
+int dirtyUnpin(BF_Block *block)
 {
   BF_Block_SetDirty(block);
   CALL_BF(BF_UnpinBlock(block));
@@ -112,15 +112,15 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
       data = BF_Block_GetData(next_ht_block); // initialize ht block
 
       // memcpy(ht_info.max_ht)    // memcpy gia max_ht --> loop apo 0 ews max_ht ++ alla ti mpainei sthn memcpy???
-      DirtyUnpin(next_ht_block);
+      dirtyUnpin(next_ht_block);
       ht_block = next_ht_block; // h next_ht_block = ht_block???
     }
   }
   memcpy(data, &ht_info, sizeof(HT_info)); // Write the meta-data to the first block
 
   /* Set blocks as dirty & unpin them, so that they are saved in the disc */
-  DirtyUnpin(block);
-  DirtyUnpin(ht_block);
+  dirtyUnpin(block);
+  dirtyUnpin(ht_block);
 
   /* Call Destroy to free the memory */
   BF_Block_Destroy(&block);
@@ -134,7 +134,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
 {
   /* Open files are at maximum - we can't open more */
-  if (check_open_files() == HT_ERROR)
+  if (checkOpenFiles() == HT_ERROR)
     return HT_ERROR;
 
   HT_info *ht_info;
@@ -225,7 +225,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
     memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
 
     // write the block back on disc
-    if (Check(DirtyUnpin(block)) < 0) {
+    if (Check(dirtyUnpin(block)) < 0) {
       printf("Error unpinning block in HT_InsertEntry\n");
       return -1;
     }

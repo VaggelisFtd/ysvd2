@@ -92,13 +92,10 @@ int main()
   BF_Block *block;
   void *headblock;
   void *data;
-
-  
-
   return 0;
 }
 
-//   int indexDesc;
+/*  int indexDesc;
 //   // CALL_OR_DIE(HT_CreateIndex(FILE_NAME, GLOBAL_DEPTH));
 //   HT_info ht_info;
 //   BF_Block *block;
@@ -186,7 +183,7 @@ int main()
 //     return -1;
 //   }
 //   // CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc));
-//  */
+//  
 
 //   Record record;
 //   srand(time(NULL));
@@ -232,7 +229,7 @@ int main()
 //   BF_Close();
 //}
 
-/* int main() {
+ int main() {
   BF_Init(LRU);
 
   CALL_OR_DIE(HT_Init());
@@ -266,4 +263,4 @@ int main()
   CALL_OR_DIE(HT_CloseFile(indexDesc));
   BF_Close();
 }
-*/
+*/ 

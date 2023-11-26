@@ -17,21 +17,10 @@ typedef struct Record {
 	char city[20];
 } Record;
 
-/* HT_info struct holds metadata associated with the hash file */
-// typedef struct {
-// 	bool is_ht;					// TRUE is ht file
-//     int fileDesc;              	// identifier number for opening file from block
-// 	int global_depth;
-// 	int* ht_array;				// hash table array - contains int-ids of blocks/buckets
-// 	int ht_array_length;  	// new - na dw an xreiazetai
-// 	int ht_array_head;		// new - na dw an xreiazetai
-// 	int buckets; // mallon prepei na uparxei, mhpws k 8elei na xekinaei me allo ari8mo buckets kapoio arxeio (ara dn ginetai me define gt 8a einai idio se ola)
-// } HT_info;
-
 typedef struct {
 	bool is_ht;					// TRUE is ht file
     int fileDesc;              	// identifier number for opening file from block
-	int global_depth;
+	int global_depth;			// 
 	int ht_id;					// block id of fisrt ht block
     int max_records;            // max number of records that can be stored
 	int max_ht;					// max number of entries in each ht block

@@ -20,45 +20,6 @@ int checkForError(int call)  //maybe not needed
     return -1;
   }
 }
-const char *names[] = {
-    "Yannis",
-    "Christofos",
-    "Sofia",
-    "Marianna",
-    "Vagelis",
-    "Maria",
-    "Iosif",
-    "Dionisis",
-    "Konstantina",
-    "Theofilos",
-    "Giorgos",
-    "Dimitris"};
-
-const char *surnames[] = {
-    "Ioannidis",
-    "Svingos",
-    "Karvounari",
-    "Rezkalla",
-    "Nikolopoulos",
-    "Berreta",
-    "Koronis",
-    "Gaitanis",
-    "Oikonomou",
-    "Mailis",
-    "Michas",
-    "Halatsis"};
-
-const char *cities[] = {
-    "Athens",
-    "San Francisco",
-    "Los Angeles",
-    "Amsterdam",
-    "London",
-    "New York",
-    "Tokyo",
-    "Hong Kong",
-    "Munich",
-    "Miami"};
 
 #define CALL_OR_DIE(call)     \
   {                           \

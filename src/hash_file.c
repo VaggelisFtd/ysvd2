@@ -372,3 +372,83 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
   // insert code here
   return HT_OK;
 }
+
+HT_ErrorCode HT_HashStatistics(char *filename)
+{
+  int fileDesc, indexDesc;
+  HT_OpenIndex(filename, &indexDesc);
+  /* if ((indexDesc < MAX_OPEN_FILES) && (indexDesc > -1) && (ht_index.fileDesc[indexDesc] != -1)) {
+  //     fileDesc = ht_index.fileDesc[indexDesc];
+  // } else
+  //     return HT_ERROR;
+*/
+
+  int num_of_blocks; // computing total blocks in the file
+  CALL_BF(BF_GetBlockCounter(fileDesc, &num_of_blocks));
+
+  printf("File '%s' has %d Blocks\n", filename, num_of_blocks);
+  if (num_of_blocks == 1)
+  {
+    printf("No data yet in the file!\n");
+    return HT_OK;
+  }
+  /*initialization*/
+  int total_buckets = 0; // counter buckets
+  int total_records = 0; // counter for records
+  int min_records = 20;
+  int max_records = 0;
+
+  char *ht;
+  BF_Block *HashBlock;
+  BF_Block_Init(&HashBlock);
+
+  int HTindex = 0;
+  LL *explorer = NULL; // traverse blocks
+
+  while (HTindex != -1)
+  {
+    insertLL(HTindex, &explorer); // get which blocks are hashblocks
+    CALL_BF(BF_GetBlock(fileDesc, HTindex, HashBlock));
+    ht = BF_Block_GetData(HashBlock);
+    HTindex = ((HT *)ht)->nextHT; // the next SHTindex
+    BF_UnpinBlock(HashBlock);
+  }
+
+  char *data;
+  BF_Block *Bucket;
+  BF_Block_Init(&Bucket);
+
+  /* we don't have secondary blocks now
+      for (int i = 0; i < num_of_blocks; i++) {
+          if (!inLL(explorer, i)) // if not secondary hash block
+          {
+              CALL_BF(BF_GetBlock(fileDesc, i, Bucket));
+              data = BF_Block_GetData(Bucket);
+
+              // if (((SecondaryBucket*)data)->recordCount > max_records)
+              //     max_records = ((SecondaryBucket*)data)->recordCount;
+
+              // if (((SecondaryBucket*)data)->recordCount < min_records)
+              //     min_records = ((SecondaryBucket*)data)->recordCount;
+
+              // total_records += ((SecondaryBucket*)data)->recordCount;
+              total_buckets++;
+              BF_UnpinBlock(Bucket);
+          }
+      } */
+
+  freeLL(explorer);
+  if (total_buckets != 0)
+  {
+    double average = total_records / total_buckets; // compute using total records by buckets
+
+    if ((min_records == 20) || (max_records == 0))
+      return HT_ERROR;
+
+    /* print the statistics */
+    printf("Minimum Records: %d\n", min_records);
+    printf("Average Records: %f\n", average);
+    printf("Maximum Records: %d\n", max_records);
+  }
+  return HT_OK;
+}

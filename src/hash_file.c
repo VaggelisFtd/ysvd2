@@ -18,7 +18,7 @@
     }                         \
   }
 
-//HT_info *Hash_table[MAX_OPEN_FILES]; // hash table for open files
+// HT_info *Hash_table[MAX_OPEN_FILES]; // hash table for open files
 
 // Hash Function
 int hash(int id, int buckets)
@@ -30,21 +30,25 @@ int hash2(int id, int buckets)
   return id % buckets;
 }
 
-int check_open_files() 
+int check_open_files()
 {
   int i;
 
-  for (i = 0; i < MAX_OPEN_FILES; i++) {
-    if (Hash_table[i] == NULL) break;
+  for (i = 0; i < MAX_OPEN_FILES; i++)
+  {
+    if (Hash_table[i] == NULL)
+      break;
   }
-  if (i == MAX_OPEN_FILES){
+  if (i == MAX_OPEN_FILES)
+  {
     printf("Open files are at maximum - more files can't be opened");
     return HT_ERROR;
   }
   return HT_OK;
 }
 
-int DirtyUnpin(BF_Block* block) {
+int DirtyUnpin(BF_Block *block)
+{
   BF_Block_SetDirty(block);
   CALL_BF(BF_UnpinBlock(block));
 }
@@ -60,13 +64,13 @@ HT_ErrorCode HT_Init()
   return HT_OK;
 }
 
-HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check for max open files beacause we can create
-{                                                               //as many as we want, but we can only have 20 open
+HT_ErrorCode HT_CreateIndex(const char *filename, int depth) // we don't check for max open files beacause we can create
+{                                                            // as many as we want, but we can only have 20 open
   HT_info ht_info;
-  BF_Block* block;
-  BF_Block* ht_block;
-  BF_Block* next_ht_block;
-  void* data;
+  BF_Block *block;
+  BF_Block *ht_block;
+  BF_Block *next_ht_block;
+  void *data;
   int file_desc, N, required_blocks, i, curr_id;
 
   CALL_BF(BF_CreateFile(filename));
@@ -84,7 +88,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check
   ht_info.is_ht = true;
   ht_info.global_depth = depth;
   ht_info.ht_id = -1;
-  ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record); // floor? --> bfr
+  ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);   // floor? --> bfr
   ht_info.max_ht = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(HT_block_info); // mallon????
 
   // HASH TABLE BLOCK --> second
@@ -98,7 +102,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check
 
   // initialize ht block
   data = BF_Block_GetData(ht_block);
-  memcpy(data, &ht_info.ht_id, sizeof(int)); //save ht_id in data
+  memcpy(data, &ht_info.ht_id, sizeof(int)); // save ht_id in data
   // ---
 
   // Hash Table can be stored in multiple blocks --> Create & Initialize more if needed
@@ -107,7 +111,8 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check
 
   required_blocks = ceil(N / ht_info.max_records); // number of blocks we need for hash table
 
-  if (required_blocks > 1){     //  if we need more blocks (we already have 1 ht block)
+  if (required_blocks > 1)
+  { //  if we need more blocks (we already have 1 ht block)
     BF_Block_Init(&next_ht_block);
     for (i = 1; i < required_blocks; i++)
     {
@@ -119,7 +124,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)    //we don't check
 
       // initialize ht block
       data = BF_Block_GetData(next_ht_block);
-      //memcpy gia max_ht --> loop apo 0 ews max_ht ++ alla ti mpainei sthn memcpy???
+      // memcpy gia max_ht --> loop apo 0 ews max_ht ++ alla ti mpainei sthn memcpy???
 
       DirtyUnpin(next_ht_block);
 
@@ -152,11 +157,12 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
 {
 
   // Open files are at maximum - we can't open more
-  if (check_open_files()== HT_ERROR) return HT_ERROR;
+  if (check_open_files() == HT_ERROR)
+    return HT_ERROR;
 
   HT_info *ht_info;
   BF_Block *block;
-  void* data;
+  void *data;
 
   CALL_BF(BF_OpenFile(fileName, indexDesc));
   BF_Block_Init(&block);
@@ -167,7 +173,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
   {
     if (Hash_table[i] == NULL)
     {
-      Hash_table[i] = (HT_info*)malloc(sizeof(HT_info));
+      Hash_table[i] = (HT_info *)malloc(sizeof(HT_info));
       data = BF_Block_GetData(block);
       ht_info = data;
       break;
@@ -185,7 +191,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc)
 
   free(Hash_table[indexDesc]);
 
-  Hash_table[indexDesc] = NULL; 
+  Hash_table[indexDesc] = NULL;
 
   return HT_OK;
 }
@@ -218,7 +224,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
   if(bucket_to_insert < 0 || bucket_to_insert >= ht_info.num_buckets)
       return -1;
   assert(bucket_to_insert >= 0 && bucket_to_insert < ht_info.num_buckets);
-  
+
   // Check if bucket has enough space for the Record
   int target_block_id = ht_info.ht_array[bucket_to_insert];
   // Pin target block
@@ -233,7 +239,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
   // Check if there is room to add the record
   // if (ht_block_info.local_depth < ht_info.global_depth) {    // maybe we MUST use this one - or are depths just for pointers and not space in a block?
   if (ht_block_info.num_records < ht_block_info.max_records) {
-    
+
     printf(" writing id:%d on block:%d\n", record.id, target_block_id);
     // insert the record in the last position of records in the block
     memcpy(data + sizeof(Record) * ht_block_info.num_records, &record, sizeof(Record));
@@ -254,7 +260,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
   }
   else {
     // if there is not enough space in tthe target block
-    
+
     // kapou edw na kanw k unpin to gemato target block
     // prepei na ginei edw H pio katw? (h ka8olou, pou de nomizw)
     // Firstly we write back in memory the full target_block
@@ -280,7 +286,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
 
     // update ht_info's total block/buckets number
     ht_info.num_buckets++;
-    
+
     // Check if more than 1 ht_array indexes point to the FULL BLOCK
     // if(ht_block_info.local_depth < ht_info.global_depth) {
     if((ht_block_info.local_depth < ht_info.global_depth) && (ht_block_info.indexes_pointed_by > 1)) { // xreiazetai o extra elegxos h einai akrivws to idio pragma???
@@ -289,35 +295,35 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
 
       // For each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (hashing with 1 more bucket this time)
       for(int k = 0 ; k < ht_block_info.num_records * sizeof(Record) ; k = k + sizeof(Record)) {
-        Record temp_record;      
+        Record temp_record;
         // copy in our variable temp_record, the contents of the current record we are reading
         memcpy(&temp_record, data + k, sizeof(Record));
         if (!HT_InsertEntry(ht_info.fileDesc, temp_record))
           return HT_ERROR;
       }
-      
+
       // Now once more for the Record_to_insert as we said above
       if (!HT_InsertEntry(ht_info.fileDesc, record))
         return HT_ERROR;
-      
+
       // mhpws ola ta parakatw prepei na ginoun prin ta Insert() ???????? ======================== SOS =============================
 
-      // Increase FULL_BLOCKs local_depth 
-      ht_block_info.local_depth++; 
+      // Increase FULL_BLOCKs local_depth
+      ht_block_info.local_depth++;
 
       HT_block_info new_block_ht_block_info;
       new_block_ht_block_info.indexes_pointed_by = 1;                   // just this one pointer we just re-routed to point to this new block
       new_block_ht_block_info.local_depth = ht_block_info.local_depth;  // the increased local depth just above
       new_block_ht_block_info.max_records = ht_block_info.max_records;  // same const value
       new_block_ht_block_info.next_block = 0;                           // we should not handle overflows anyway
-      new_block_ht_block_info.num_records = 0;                          // still 0 records inside, it will be increased after calling HT_Insert below 
-      
+      new_block_ht_block_info.num_records = 0;                          // still 0 records inside, it will be increased after calling HT_Insert below
+
       // get pointer to new blocks data
       data = BF_Block_GetData(block);
-      
+
       // copy the updated ht_info at the end of the newly allocated block
       memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &new_block_ht_block_info, sizeof(HT_block_info));
-      
+
     }
     // If exactly 1 ht_array index points to the FULL BLOCK
     // else if ((ht_block_info.local_depth == ht_info.global_depth) && (ht_block_info.indexes_pointed_by == 1)) { // xreiazetai o extra elegxos h einai akrivws to idio pragma???
@@ -363,13 +369,13 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
 
       // For each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (hashing with 1 more bucket this time)
       for(int k = 0 ; k < ht_block_info.num_records * sizeof(Record) ; k = k + sizeof(Record)) {
-        Record temp_record;      
+        Record temp_record;
         // copy in our variable temp_record, the contents of the current record we are reading
         memcpy(&temp_record, data + k, sizeof(Record));
         if (!HT_InsertEntry(ht_info.fileDesc, temp_record))
           return HT_ERROR;
       }
-      
+
       // Now once more for the Record_to_insert as we said above
       if (!HT_InsertEntry(ht_info.fileDesc, record))
         return HT_ERROR;
@@ -383,9 +389,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
   return HT_OK;
 }
 */
- 
- /*V2 */
- 
+
+  /*V2 */
 }
 
 HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)

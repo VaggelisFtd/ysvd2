@@ -18,7 +18,7 @@
     }                         \
   }
 
-// HT_info *Hash_table[MAX_OPEN_FILES]; // hash table for open files
+HT_info *Hash_table[MAX_OPEN_FILES]; // hash table for open files
 
 // Hash Function
 int hashFunction(int id, int buckets)
@@ -28,7 +28,8 @@ int hashFunction(int id, int buckets)
 
 int checkOpenFiles() // can it be void?
 {
-  for (int i = 0; i < MAX_OPEN_FILES; i++)
+  int i = 0;
+  for (i; i < MAX_OPEN_FILES; i++)
   {
     if (Hash_table[i] == NULL)
       break;
@@ -41,7 +42,7 @@ int checkOpenFiles() // can it be void?
   return HT_OK;
 }
 
-void dirtyUnpin(BF_Block *block) // doesnt return something
+int dirtyUnpin(BF_Block *block) // doesnt return something
 {
   BF_Block_SetDirty(block);
   CALL_BF(BF_UnpinBlock(block));
@@ -373,7 +374,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
   return HT_OK;
 }
 
-HT_ErrorCode HT_HashStatistics(char *filename)
+/* HT_ErrorCode HT_HashStatistics(char *filename)
 {
   int fileDesc, indexDesc;
   HT_OpenIndex(filename, &indexDesc);
@@ -381,7 +382,7 @@ HT_ErrorCode HT_HashStatistics(char *filename)
   //     fileDesc = ht_index.fileDesc[indexDesc];
   // } else
   //     return HT_ERROR;
-*/
+
 
   int num_of_blocks; // computing total blocks in the file
   CALL_BF(BF_GetBlockCounter(fileDesc, &num_of_blocks));
@@ -392,7 +393,7 @@ HT_ErrorCode HT_HashStatistics(char *filename)
     printf("No data yet in the file!\n");
     return HT_OK;
   }
-  /*initialization*/
+
   int total_buckets = 0; // counter buckets
   int total_records = 0; // counter for records
   int min_records = 20;
@@ -426,10 +427,11 @@ HT_ErrorCode HT_HashStatistics(char *filename)
     if ((min_records == 20) || (max_records == 0))
       return HT_ERROR;
 
-    /* print the statistics */
+    //print statistics
     printf("Minimum Records: %d\n", min_records);
     printf("Average Records: %f\n", average);
     printf("Maximum Records: %d\n", max_records);
   }
   return HT_OK;
 }
+*/

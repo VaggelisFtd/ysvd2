@@ -21,20 +21,14 @@
 // HT_info *Hash_table[MAX_OPEN_FILES]; // hash table for open files
 
 // Hash Function
-int hash(int id, int buckets)
-{
-  return (id * (id + 3)) % buckets; // ask vaggelis
-}
-int hash2(int id, int buckets)
+int hashFunction(int id, int buckets)
 {
   return id % buckets;
 }
 
-int checkOpenFiles()
+int checkOpenFiles() // can it be void?
 {
-  int i;
-
-  for (i = 0; i < MAX_OPEN_FILES; i++)
+  for (int i = 0; i < MAX_OPEN_FILES; i++)
   {
     if (Hash_table[i] == NULL)
       break;
@@ -47,7 +41,7 @@ int checkOpenFiles()
   return HT_OK;
 }
 
-int dirtyUnpin(BF_Block *block)
+void dirtyUnpin(BF_Block *block) // doesnt return something
 {
   BF_Block_SetDirty(block);
   CALL_BF(BF_UnpinBlock(block));
@@ -55,7 +49,6 @@ int dirtyUnpin(BF_Block *block)
 
 HT_ErrorCode HT_Init()
 {
-  // maybe fileCount = 0; ?
   CALL_BF(BF_Init(LRU));
   for (int i = 0; i < MAX_OPEN_FILES; i++)
     Hash_table[i] = NULL;
@@ -73,11 +66,11 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   void *data;
   int file_desc, N, required_blocks, i, curr_id;
 
-  /*initialization*/
+  /*create file and open it*/
   CALL_BF(BF_CreateFile(filename));
   CALL_BF(BF_OpenFile(filename, &ht_info.fileDesc));
 
-  /* 1st block: metadata */
+  /* 1st block: init metadata */
   BF_Block_Init(&block);
   CALL_BF(BF_AllocateBlock(ht_info.fileDesc, block));
   data = BF_Block_GetData(block);
@@ -97,13 +90,14 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   memcpy(data, &ht_info.ht_id, sizeof(int));                     // save ht_id in data
 
   /*Hash Table can be stored in multiple blocks --> Create & Initialize more if needed */
+
   N = pow(2, ht_info.global_depth);                // 2^depth --> number of entries
   required_blocks = ceil(N / ht_info.max_records); // number of blocks we need for hash table
 
   if (required_blocks > 1) //  if we need more blocks (we already have 1 ht block)
   {
     BF_Block_Init(&next_ht_block);
-    for (i = 1; i < required_blocks; i++)
+    for (int i = 1; i < required_blocks; i++)
     {
       CALL_BF(BF_AllocateBlock(file_desc, next_ht_block));
       CALL_BF(BF_GetBlockCounter(ht_info.fileDesc, &curr_id)); // Get number (id) of the new block
@@ -141,6 +135,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
   BF_Block *block;
   void *data;
 
+  /*Open the file*/
   CALL_BF(BF_OpenFile(fileName, indexDesc));
   BF_Block_Init(&block);
   CALL_BF(BF_GetBlock(*indexDesc, 0, block));
@@ -194,7 +189,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
   // check in IF if we unpin it more than once -> makes Seg!!!
 
   // In which bucket to insert
-  int bucket_to_insert = hash2(record.id, ht_info.num_buckets);
+  int bucket_to_insert = hashFunction(record.id, ht_info.num_buckets);
   if(bucket_to_insert < 0 || bucket_to_insert >= ht_info.num_buckets)
       return -1;
   assert(bucket_to_insert >= 0 && bucket_to_insert < ht_info.num_buckets);
@@ -365,6 +360,11 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
 */
 
   /*V2 */
+  char *data;
+  BF_Block *block;
+  HT_info ht_info;
+  HT_block_info ht_block_info;
+  BF_Block_Init(&block);
 }
 
 HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
@@ -417,25 +417,6 @@ HT_ErrorCode HT_HashStatistics(char *filename)
   char *data;
   BF_Block *Bucket;
   BF_Block_Init(&Bucket);
-
-  /* we don't have secondary blocks now
-      for (int i = 0; i < num_of_blocks; i++) {
-          if (!inLL(explorer, i)) // if not secondary hash block
-          {
-              CALL_BF(BF_GetBlock(fileDesc, i, Bucket));
-              data = BF_Block_GetData(Bucket);
-
-              // if (((SecondaryBucket*)data)->recordCount > max_records)
-              //     max_records = ((SecondaryBucket*)data)->recordCount;
-
-              // if (((SecondaryBucket*)data)->recordCount < min_records)
-              //     min_records = ((SecondaryBucket*)data)->recordCount;
-
-              // total_records += ((SecondaryBucket*)data)->recordCount;
-              total_buckets++;
-              BF_UnpinBlock(Bucket);
-          }
-      } */
 
   freeLL(explorer);
   if (total_buckets != 0)

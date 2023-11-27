@@ -18,9 +18,9 @@ typedef struct {
     int fileDesc;              	// identifier number for opening file from block
 	int global_depth;
 	int* ht_array;				// hash table array - contains int-ids of blocks/buckets
-	int ht_array_length;  	// new - na dw an xreiazetai
-	int ht_array_head;		// new - na dw an xreiazetai
-	int starting_buckets; // mallon prepei na uparxei, mhpws k 8elei na xekinaei me allo ari8mo buckets kapoio arxeio (ara dn ginetai me define gt 8a einai idio se ola)
+	int ht_array_length;  	// new: number of blocks needed to store ht_array - na dw an xreiazetai
+	int ht_array_head;		// new: id of first block used to store ht_array - na dw an xreiazetai
+	int ht_array_size;		// new: number of elements(representing hash values) allocated for ht_array
 	int num_buckets; // mallon prepei na uparxei, mhpws k 8elei na xekinaei me allo ari8mo buckets kapoio arxeio (ara dn ginetai me define gt 8a einai idio se ola)
 } HT_info;
 

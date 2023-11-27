@@ -75,6 +75,8 @@ const char* cities[] = {
     }                         \
   }
 
+int* ht_array_global;
+
 int main() {
   BF_Init(LRU);
   
@@ -105,9 +107,22 @@ int main() {
   }
 
   headblock = BF_Block_GetData(block);
+  // ===
+  // ht_array_global = malloc(GLOBAL_DEPTH * sizeof(int));
+  ht_array_global = malloc(10 * sizeof(int));
+  // ht_array_global[0] = 0;
+  // ht_array_global[1] = 1;
+  for (int i=0 ; i<10 ; i++)
+    ht_array_global[i] = i;
+  // ===
   ht_info.is_ht = true;
-  ht_info.global_depth = GLOBAL_DEPTH; // xekiname me 2 buckets (00, 01 i guess)
-  ht_info.ht_array = malloc(GLOBAL_DEPTH * sizeof(int)); // space for 2 blocks/buckets
+  ht_info.global_depth = GLOBAL_DEPTH;      // xekiname me 2 buckets (00, 01 i guess)
+  // ht_info.ht_array = malloc(GLOBAL_DEPTH * sizeof(int)); // space for 2 blocks/buckets
+  ht_info.ht_array = ht_array_global;       // space for 2 blocks/buckets
+  ht_info.ht_array_head = 0;                // block 0 is the head of the ht_array
+  ht_info.ht_array_length = 1;              // there only 1 block needed to store ht_array (yet)
+  ht_info.ht_array_size = GLOBAL_DEPTH;     // 2 or GLOBAL_DEPTH pointers of ht_array have been allocated
+  ht_info.num_buckets = 2;                  // total number of buckets/blocks in this ht file 
 
   memcpy(headblock, &ht_info, sizeof(HT_info));
   BF_Block_SetDirty(block);
@@ -178,8 +193,8 @@ int main() {
   // printf("RUN PrintAllEntries\n");
   // int target_id = 4;
   // int target_id = rand() % MAX_RECORDS;
-  // HT_PrintAllEntries(ht_info.fileDesc, &target_id);  // print specific id
-  CALL_OR_DIE(HT_PrintAllEntries(ht_info.fileDesc, NULL));           // print all
+  // HT_PrintAllEntries(ht_info.fileDesc, &target_id);                   // print specific id
+  CALL_OR_DIE(HT_PrintAllEntries(ht_info.fileDesc, NULL));            // print all
 
   // CALL_OR_DIE(HT_CloseFile(indexDesc));
   

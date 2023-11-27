@@ -36,6 +36,13 @@ typedef struct {
 
 HT_info *Hash_table[MAX_OPEN_FILES]; // hash table for open files
 
+typedef struct Bucket{
+	int local_depth; 
+	int record_count;
+	int bucket_size;
+	Record records[MAX_RECORDS]; 
+} Bucket;
+
 
 /*
  * Η συνάρτηση HT_Init χρησιμοποιείται για την αρχικοποίηση κάποιον δομών που μπορεί να χρειαστείτε. 

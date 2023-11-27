@@ -109,11 +109,11 @@ int main() {
   headblock = BF_Block_GetData(block);
   // ===
   // ht_array_global = malloc(GLOBAL_DEPTH * sizeof(int));
-  ht_array_global = malloc(10 * sizeof(int));
+  ht_array_global = malloc(2 * sizeof(int));
   // ht_array_global[0] = 0;
   // ht_array_global[1] = 1;
-  for (int i=0 ; i<10 ; i++)
-    ht_array_global[i] = i;
+  for (int i=0 ; i<2 ; i++)
+    ht_array_global[i] = i+1;
   // ===
   ht_info.is_ht = true;
   ht_info.global_depth = GLOBAL_DEPTH;      // xekiname me 2 buckets (00, 01 i guess)
@@ -161,7 +161,7 @@ int main() {
   ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
   ht_block_info.next_block = 0;
   ht_block_info.num_records = 0;
-  memcpy(data, &ht_block_info, sizeof(HT_block_info));
+  memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
   BF_Block_SetDirty(block);
   if (Check(BF_UnpinBlock(block)) < 0) {
     printf("Error allocating block in HT_CreateFile\n");
@@ -175,7 +175,7 @@ int main() {
   // printf("Inserting %d Entries\n", MAX_RECORDS);
   printf("Inserting 5 Entries\n");
   // for (int id = 0; id < MAX_RECORDS; ++id) {
-  for (int id = 0; id < 5; ++id) {
+  for (int id = 0; id < 20; ++id) {
     // create a record
     record.id = id;
     r = rand() % 12;

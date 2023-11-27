@@ -136,7 +136,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   data = BF_Block_GetData(block);
   // get the metadata of this block so that we can access ht_info.fileDesc
   memcpy(&ht_info, data, sizeof(HT_info));
-  printf(" ===================== \n");
+  for (int i=0 ; i<2 ; i++)
+    printf(" ht_info.ht_array[%d] = %d\n", i, ht_info.ht_array[i]);
 
   // We are done with info from block 0, so we can unpin it now?
   // here?
@@ -144,37 +145,35 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
   // In which bucket to insert
   int bucket_to_insert = hash2(record.id, ht_info.num_buckets);
-  printf(" ===================== \n");
   if(bucket_to_insert < 0 || bucket_to_insert >= ht_info.num_buckets) {
-      printf(" ==========wrong hashing=========== \n");
-      return -1;
+    return -1;
   }
   assert(bucket_to_insert >= 0 && bucket_to_insert < ht_info.num_buckets);
   
   // Check if bucket has enough space for the Record
-  printf(" ===================== \n");
   int target_block_id = ht_info.ht_array[bucket_to_insert];
+  printf(" Trying to insert record id: %d in block %d\n", record.id, target_block_id);
   // Pin target block
   if (BF_GetBlock(indexDesc, target_block_id, block) < 0) {
     printf("Error getting block in HT_InsertEntry\n");
     return -1;
   }
-  printf(" ===================== \n");
   // get pointer to target blocks data
   data = BF_Block_GetData(block);
   // copy its data to our local var
   memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
-  printf(" ===================== \n");
   // Check if there is room to add the record
   // if (ht_block_info.local_depth < ht_info.global_depth) {    // maybe we MUST use this one - or are depths just for pointers and not space in a block?
+  printf(" ht_block_info.num_records = %d, ht_block_info.max_records %d\n", ht_block_info.num_records, ht_block_info.max_records);
   if (ht_block_info.num_records < ht_block_info.max_records) {
     
-    printf(" writing id:%d on block:%d\n", record.id, target_block_id);
+    printf(" writing record id: %d on block:%d\n", record.id, target_block_id);
     // insert the record in the last position of records in the block
     memcpy(data + sizeof(Record) * ht_block_info.num_records, &record, sizeof(Record));
 
     // this block's data changed, so we update its ht_block_info
     ht_block_info.num_records++;
+    printf(" ht_block_info.num_records: %d\n", ht_block_info.num_records);
 
     // copy the updated ht_info at the end of the block
     memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
@@ -191,7 +190,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   }
   else {
     // if there is not enough space in tthe target block
-    
+    printf(" =====PLEON DEN XWRANE RECORDS STO BLOCK %d======== \n", target_block_id);
     // kapou edw na kanw k unpin to gemato target block
     // prepei na ginei edw H pio katw? (h ka8olou, pou de nomizw)
     // Firstly we write back in memory the full target_block
@@ -214,15 +213,31 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       return -1;
     }
     new_block_id--; // we subtract block with id: 0, containing ht_info
+    printf(" new_block_id = %d \n", new_block_id);
 
     // update ht_info's total block/buckets number
     ht_info.num_buckets++;
+    printf(" ht_info.num_buckets = %d \n", ht_info.num_buckets);
     
     // Check if more than 1 ht_array indexes point to the FULL BLOCK
     // if(ht_block_info.local_depth < ht_info.global_depth) {
     if((ht_block_info.local_depth < ht_info.global_depth) && (ht_block_info.indexes_pointed_by > 1)) { // xreiazetai o extra elegxos h einai akrivws to idio pragma???
       // Make the CURRENT POINTER point to the newly allocated block (keeping all other "indexes_pointed_by" pointers pointing to same block as before)
       ht_info.ht_array[bucket_to_insert] = new_block_id;
+
+      // Re-write it to Block 0
+      BF_Block* headblock;
+      char* headdata;
+      if (BF_GetBlock(indexDesc, 0, headblock) < 0) {
+        printf("Error getting block in HT_InsertEntry\n");
+        return -1;
+      }
+      // get pointer to block 0 data
+      headdata = BF_Block_GetData(headblock);
+      // Update ht_info by overwriting it
+      memcpy(headdata, &ht_info, sizeof(HT_info));
+      BF_Block_SetDirty(headblock);
+      BF_UnpinBlock(headblock); // mhpws den prepei na einai edw?
 
       // For each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (hashing with 1 more bucket this time)
       for(int k = 0 ; k < ht_block_info.num_records * sizeof(Record) ; k = k + sizeof(Record)) {
@@ -252,7 +267,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       // get pointer to new blocks data
       data = BF_Block_GetData(block);
       
-      // copy the updated ht_info at the end of the newly allocated block
+      // copy the updated ht_lock_info at the end of the newly allocated block
       memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &new_block_ht_block_info, sizeof(HT_block_info));
       BF_Block_SetDirty(block);
       
@@ -279,11 +294,11 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       }
 
       // Re-write it to Block 0
-      char* data0;
+      char* headblock;
       // get pointer to block 0 data
-      data0 = BF_Block_GetData(block);
+      headblock = BF_Block_GetData(block);
       // Update ht_info by overwriting it with the updated ht_info-size
-      memcpy(data0, &ht_info, sizeof(HT_info));
+      memcpy(headblock, &ht_info, sizeof(HT_info));
       BF_Block_SetDirty(block);
       BF_UnpinBlock(block); // mhpws den prepei na einai edw?
 
@@ -378,8 +393,8 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
     return -1;
   }
 
-  // for (int i=1 ; i<total_blocks ; i++) {
-  for (int i=1 ; i<2 ; i++) {
+  for (int i=1 ; i<total_blocks ; i++) {
+  // for (int i=1 ; i<2 ; i++) {
     // Bring this block to memory
     if ((BF_GetBlock(ht_info.fileDesc, i, block)) < 0) {
       return -1;

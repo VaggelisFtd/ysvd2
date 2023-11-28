@@ -54,7 +54,11 @@ int checkOpenFiles()
   }
   return HT_OK;
 }
-
+void printCustomRecord(Record *record)
+{
+  printf("%d,\"%s\",\"%s\",\"%s\"\n",
+         record->id, record->name, record->surname, record->city);
+}
 HT_ErrorCode HT_Init()
 {
   CALL_BF(BF_Init(LRU));
@@ -291,5 +295,96 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
 
 HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
 {
-  
+   openedIndex *indexForInsertion = hash_table[indexDesc];
+  int fd = indexForInsertion->fileDesc;
+  int buckets = indexForInsertion->buckets;
+
+  // Calculate blocks in index.
+  int integersInABlock = BF_BLOCK_SIZE / sizeof(int);
+  int blocksInIndex = buckets / integersInABlock + 1;
+
+  BF_Block *recordBlock;
+  BF_Block_Init(&recordBlock);
+
+  int totalBlocks;
+  CALL_BF(BF_GetBlockCounter(fd, &totalBlocks));
+
+  // If id is NULL, print every record in the hash file
+  if (id == NULL)
+  {
+    Record *record;
+    for (int currentBlock = 1 + blocksInIndex; currentBlock < totalBlocks; currentBlock++)
+    {
+      CALL_BF(BF_GetBlock(fd, currentBlock, recordBlock));
+      char *blockData;
+      blockData = BF_Block_GetData(recordBlock);
+      int count;
+      memcpy(&count, blockData + sizeof(int), sizeof(int));
+      for (int i = 0; i < count; i++)
+      {
+        record = (Record *)(blockData + OFFSET + i * sizeof(Record));
+        printCustomRecord(record);
+      }
+      CALL_BF(BF_UnpinBlock(recordBlock));
+    }
+  }
+
+  else
+  { // Otherwise find the record in the hash table using the same operations as in InsertEntry
+    Record *record;
+    int hashValue = hash(*id, buckets);
+    int blockToGoTo = hashValue / integersInABlock + 1;
+    int positionInBlock = hashValue % integersInABlock;
+
+    // Find bucket:
+    int bucket;
+    BF_Block *indexBlock;
+    BF_Block_Init(&indexBlock);
+    char *indexData;
+    CALL_BF(BF_GetBlock(fd, blockToGoTo, indexBlock));
+    indexData = BF_Block_GetData(indexBlock);
+    indexData += positionInBlock * sizeof(int);
+    memcpy(&bucket, indexData, sizeof(int));
+
+    if (bucket == 0)
+    {
+      CALL_BF(BF_UnpinBlock(recordBlock));
+      BF_Block_Destroy(&recordBlock);
+      printf("Bucket doesn't exist yet.\n");
+      return HT_OK;
+    }
+
+    int next = bucket;
+    int count;
+    int printed = 0;
+
+    do
+    { // Searching each block in the bucket for the record
+      CALL_BF(BF_GetBlock(fd, next, recordBlock));
+      char *recordData;
+      recordData = BF_Block_GetData(recordBlock);
+      memcpy(&next, recordData, sizeof(int));
+      memcpy(&count, recordData + sizeof(int), sizeof(int));
+      for (int i = 0; i < count; i++)
+      {
+        record = (Record *)(recordData + OFFSET + i * sizeof(Record));
+        if (record->id == *id)
+        {
+          printCustomRecord(record);
+          printed++;
+        }
+      }
+      CALL_BF(BF_UnpinBlock(recordBlock));
+    } while (next != -1);
+
+    if (printed == 0)
+    {
+      printf("Could not find ID %d sadly...\n", *id);
+    }
+    CALL_BF(BF_UnpinBlock(indexBlock));
+    BF_Block_Destroy(&indexBlock);
+  }
+
+  BF_Block_Destroy(&recordBlock);
+  return HT_OK;
 }

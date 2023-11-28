@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h> // for debugging
+
 #include <math.h>
 #include "bf.h"
 #include "hash_file.h"

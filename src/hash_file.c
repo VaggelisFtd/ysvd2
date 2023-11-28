@@ -4,7 +4,7 @@
 #include <assert.h> // for debugging
 #include <math.h>
 #include "bf.h"
-#include "../include/hash_file.h"
+#include "hash_file.h"
 
 #define MAX_OPEN_FILES 20
 #define OFFSET 2 * sizeof(int)
@@ -54,7 +54,6 @@ int checkOpenFiles()
   }
   return HT_OK;
 }
-// HT_info *hash_table[MAX_OPEN_FILES]; // hash table for open files
 
 HT_ErrorCode HT_Init()
 {
@@ -101,7 +100,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   /*Hash Table can be stored in multiple blocks --> Create & Initialize more if needed */
 
   // N = pow(2, ht_info.global_depth);                // 2^depth --> number of entries
-  N = 2 ^ ht_info.global_depth;
+  N = 2 ^ ht_info.global_depth;  //cant read pow
   required_blocks = ceil(N / ht_info.max_records); // number of blocks we need for hash table
 
   if (required_blocks > 1) //  if we need more blocks (we already have 1 ht block)
@@ -215,7 +214,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
     // Add new bucket number to index:
     memcpy(indexData, &newBlockNum, sizeof(int));
     BF_Block_SetDirty(indexBlock);
-    // CALL_BF(BF_UnpinBlock(indexBlock));
+    CALL_BF(BF_UnpinBlock(indexBlock));
 
     // Add new record to new bucket:
     int next = -1;

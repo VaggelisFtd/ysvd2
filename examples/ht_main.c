@@ -66,17 +66,24 @@ const char* cities[] = {
 
 int main()
 {
+  printf("I work here 69");
   CALL_OR_DIE(HT_Init());
+  printf("I work here 71");
   int indexDesc;
   CALL_OR_DIE(HT_CreateIndex(FILE_NAME, BUCKETS_NUM));
+  printf("I work here 74");
   CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc));
+  printf("I work here 76");
 
   Record record;
   srand(12569874);
   int r;
   printf("Insert Entries\n");
+  printf("I work here 82");
+
   for (int id = 0; id < MAX_RECORDS; ++id)
   {
+  printf("I work here 86");
     record.id = id;
     r = rand() % 12;
     memcpy(record.name,names[r], strlen(names[r]) + 1);
@@ -86,6 +93,7 @@ int main()
     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
 
     CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
+    printf("I work here 96");
   }
 
   printf("RUN PrintAllEntries\n");

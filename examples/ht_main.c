@@ -66,7 +66,6 @@ const char* cities[] = {
 
 int main()
 {
-  printf("I work here 69\n");
   CALL_OR_DIE(HT_Init());
   printf("I work here 71\n");
   int indexDesc;
@@ -75,52 +74,73 @@ int main()
   CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc));
   printf("I work here 76\n");
 
-  Record record;
-  srand(12569874);
-  int r;
-  printf("Insert Entries\n");
-  printf("I work here 82\n");
+  // Record record;
+  // srand(12569874);
+  // int r;
+  // printf("Insert Entries\n");
+  // printf("I work here 82\n");
 
-  for (int id = 0; id < MAX_RECORDS; ++id)
-  {
-  printf("I work here 86\n");
+  // for (int id = 0; id < MAX_RECORDS; ++id)
+  // {
+  // printf("I work here 86\n");
+  //   record.id = id;
+  //   r = rand() % 12;
+  //   memcpy(record.name,names[r], strlen(names[r]) + 1);
+  //   r = rand() % 12;
+  //   memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
+  //   r = rand() % 10;
+  //   memcpy(record.city, cities[r], strlen(cities[r]) + 1);
+
+  //   CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
+  //   printf("I work here 96");
+  // }
+  Record record;
+  srand(time(NULL));
+  int r;
+  // printf("Inserting %d Entries\n", MAX_RECORDS);
+  printf("Inserting 5 Entries\n");
+  printf("I work here 103\n");
+  for (int id = 0; id < MAX_RECORDS; ++id) {
+  // for (int id = 0; id < 20; ++id) {
+    // create a record
     record.id = id;
     r = rand() % 12;
-    memcpy(record.name,names[r], strlen(names[r]) + 1);
+    memcpy(record.name, names[r], strlen(names[r]) + 1);
     r = rand() % 12;
     memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
     r = rand() % 10;
     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
 
     CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
-    printf("I work here 96");
-  }
 
   printf("RUN PrintAllEntries\n");
   int id = rand() % MAX_RECORDS;
   // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
   // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, NULL));
 
-  printf("Print Entry with id = %d\n", id);
+  // printf("Print Entry with id = %d\n", id);
   // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id)); // must print something like : Entry doesn't exist or nothing at all
 
-  id = 0;
-  printf("Print Entry with id = %d\n", id);
+  // id = 0;
+  // printf("Print Entry with id = %d\n", id);
   // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
 
-  id = 1689;
-  printf("Print Entry with id = %d\n", id);
+  // id = 1689;
+  // printf("Print Entry with id = %d\n", id);
   // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
 
-  record.id = 1689;
-  CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
-  printf("Print Entry with id = %d\n", id);
+  // record.id = 1689;
+  // CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
+  // printf("Print Entry with id = %d\n", id);
   // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
 
-  id = 30545;
-  printf("Print Entry with id = %d\n", id);
+  // id = 30545;
+  // printf("Print Entry with id = %d\n", id);
   // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
 
   CALL_OR_DIE(HT_CloseFile(indexDesc));
   BF_Close();
+
 }
+}
+

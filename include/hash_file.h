@@ -1,7 +1,6 @@
 #ifndef HASH_FILE_H
 #define HASH_FILE_H
 
-#include <stdbool.h>
 // #include "../include/bf.h"
 #include "../include/record.h"
 
@@ -13,7 +12,8 @@ typedef enum HT_ErrorCode {
 } HT_ErrorCode;
 
 /* HT_info struct holds metadata associated with the hash file */
-typedef struct {
+
+/* typedef struct {
 	bool is_ht;					// TRUE is ht file
     int fileDesc;              	// identifier number for opening file from block
 	int global_depth;
@@ -34,16 +34,7 @@ typedef struct {
 									// kai na mporoume grhgora na xwrizoume auto ton ari8mo se 2 isa~ uposunola
 									// Sthn ousia dld to 8eloume apla gia na exoume to X apo to X/2 -> new block kai X%2 ->old block, pou 8a kanoume
 } HT_block_info;
-
-int hash(int id, int buckets);		// να τις βαλω σε αλλο αρχείο!!!
-int hash2(int id, int buckets);
-
-// typedef struct Bucket{
-	// int local_depth; // new - mallon prepei na einai edw???
-	// int record_count;
-	// int bucket_size;
-	// Record records[MAX_RECORDS]; 
-// } Bucket;
+*/
 
 /*
  * Η συνάρτηση HT_Init χρησιμοποιείται για την αρχικοποίηση κάποιον δομών που μπορεί να χρειαστείτε. 

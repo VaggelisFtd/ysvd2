@@ -4,50 +4,52 @@
 // #include <record.h>
 #include "../include/record.h"
 
-const char *names[] = {
-    "Yannis",
-    "Christofos",
-    "Sofia",
-    "Marianna",
-    "Vagelis",
-    "Maria",
-    "Iosif",
-    "Dionisis",
-    "Konstantina",
-    "Theofilos",
-    "Giorgos",
-    "Dimitris"};
+const char* names[] = {
+  "Yannis",+
+  "Christofos",
+  "Sofia",
+  "Marianna",
+  "Vagelis",
+  "Maria",
+  "Iosif",
+  "Dionisis",
+  "Konstantina",
+  "Theofilos",
+  "Giorgos",
+  "Dimitris"
+};
 
-const char *surnames[] = {
-    "Ioannidis",
-    "Svingos",
-    "Karvounari",
-    "Rezkalla",
-    "Nikolopoulos",
-    "Berreta",
-    "Koronis",
-    "Gaitanis",
-    "Oikonomou",
-    "Mailis",
-    "Michas",
-    "Halatsis"};
+const char* surnames[] = {
+  "Ioannidis",
+  "Svingos",
+  "Karvounari",
+  "Rezkalla",
+  "Nikolopoulos",
+  "Berreta",
+  "Koronis",
+  "Gaitanis",
+  "Oikonomou",
+  "Mailis",
+  "Michas",
+  "Halatsis"
+};
 
-const char *cities[] = {
-    "Athens",
-    "San Francisco",
-    "Los Angeles",
-    "Amsterdam",
-    "London",
-    "New York",
-    "Tokyo",
-    "Hong Kong",
-    "Munich",
-    "Miami"};
+const char* cities[] = {
+  "Athens",
+  "San Francisco",
+  "Los Angeles",
+  "Amsterdam",
+  "London",
+  "New York",
+  "Tokyo",
+  "Hong Kong",
+  "Munich",
+  "Miami"
+};
 
 static int id = 0;
 
-Record randomRecord()
-{
+Record randomRecord(){
     Record record;
     // memcpy(record.record, "record", strlen("record")+1);
     // create a record
@@ -61,7 +63,7 @@ Record randomRecord()
     return record;
 }
 
-void printRecord(Record record)
-{
-    printf("(%d,%s,%s,%s)\n", record.id, record.name, record.surname, record.city);
+void printRecord(Record record){
+    printf("(%d,%s,%s,%s)\n",record.id,record.name,record.surname,record.city);
+
 }

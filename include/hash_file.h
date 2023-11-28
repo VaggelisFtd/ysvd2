@@ -1,7 +1,7 @@
 #ifndef HASH_FILE_H
 #define HASH_FILE_H
-
-// #include "../include/bf.h"
+#include <stdbool.h>
+#include "../include/bf.h"
 #include "../include/record.h"
 
 #define MAX_RECORDS 1000 // you can change it if you want
@@ -13,15 +13,24 @@ typedef enum HT_ErrorCode {
 
 /* HT_info struct holds metadata associated with the hash file */
 
-/* typedef struct {
+//  typedef struct {
+// 	// bool is_ht;					// TRUE is ht file
+//     int fileDesc;              	// identifier number for opening file from block
+// 	int global_depth;
+// 	int* ht_array;				// hash table array - contains int-ids of blocks/buckets
+// 	int ht_array_length;  	// new: number of blocks needed to store ht_array - na dw an xreiazetai
+// 	int ht_array_head;		// new: id of first block used to store ht_array - na dw an xreiazetai
+// 	int ht_array_size;		// new: number of elements(representing hash values) allocated for ht_array
+// 	int num_buckets; // mallon prepei na uparxei, mhpws k 8elei na xekinaei me allo ari8mo buckets kapoio arxeio (ara dn ginetai me define gt 8a einai idio se ola)
+// } HT_info;
+
+typedef struct {
 	bool is_ht;					// TRUE is ht file
     int fileDesc;              	// identifier number for opening file from block
-	int global_depth;
-	int* ht_array;				// hash table array - contains int-ids of blocks/buckets
-	int ht_array_length;  	// new: number of blocks needed to store ht_array - na dw an xreiazetai
-	int ht_array_head;		// new: id of first block used to store ht_array - na dw an xreiazetai
-	int ht_array_size;		// new: number of elements(representing hash values) allocated for ht_array
-	int num_buckets; // mallon prepei na uparxei, mhpws k 8elei na xekinaei me allo ari8mo buckets kapoio arxeio (ara dn ginetai me define gt 8a einai idio se ola)
+	int global_depth;			// 
+	int ht_id;					// block id of fisrt ht block
+    int max_records;            // max number of records that can be stored
+	int max_ht;					// max number of entries in each ht block
 } HT_info;
 
 
@@ -34,7 +43,6 @@ typedef struct {
 									// kai na mporoume grhgora na xwrizoume auto ton ari8mo se 2 isa~ uposunola
 									// Sthn ousia dld to 8eloume apla gia na exoume to X apo to X/2 -> new block kai X%2 ->old block, pou 8a kanoume
 } HT_block_info;
-*/
 
 /*
  * Η συνάρτηση HT_Init χρησιμοποιείται για την αρχικοποίηση κάποιον δομών που μπορεί να χρειαστείτε. 

@@ -5,47 +5,68 @@
 #include <time.h>
 #include "../include/bf.h"
 #include "../include/hash_file.h"
-// #include "../include/record.h"
+#include "../include/record.h"
 
-int Check(int call)
-{
-  BF_ErrorCode code = call;
-  // printf("%d wwwwww\n", code);   // an den uparxei ena printf edw h mesa sto IF, skaei to programma???
-  if (code != BF_OK)
-  {
-    BF_PrintError(code);
-    printf("bf_error_code = %d\n", code); // h edw*
-    return -1;
-  }
-}
 
-#define MAX_RECORDS 1000 // you can change it if you want
-#define GLOBAL_DEPTH 2 // you can change it if you want // prepei na bgei sthn telikh main
+// #define MAX_RECORDS 1700 // you can change it if you want
+#define BUCKETS_NUM 13  // you can change it if you want
 #define FILE_NAME "data.db"
-
-int checkForError(int call)  //maybe not needed
-{
-  BF_ErrorCode code = call;
-  if (code != BF_OK)
-  {
-    BF_PrintError(code);
-    printf("bf_error_code = %d\n", code);
-    return -1;
-  }
-}
 
 #define CALL_OR_DIE(call)     \
   {                           \
     HT_ErrorCode code = call; \
-    if (code != HT_OK) {      \
+    if (code != HT_OK)        \
+    {                         \
       printf("Error\n");      \
       exit(code);             \
     }                         \
-}
+  }
+const char* names[] = {
+  "Yannis",
+  "Christofos",
+  "Sofia",
+  "Marianna",
+  "Vagelis",
+  "Maria",
+  "Iosif",
+  "Dionisis",
+  "Konstantina",
+  "Theofilos",
+  "Giorgos",
+  "Dimitris"
+};
 
-int* ht_array_global;
+const char* surnames[] = {
+  "Ioannidis",
+  "Svingos",
+  "Karvounari",
+  "Rezkalla",
+  "Nikolopoulos",
+  "Berreta",
+  "Koronis",
+  "Gaitanis",
+  "Oikonomou",
+  "Mailis",
+  "Michas",
+  "Halatsis"
+};
 
-int main() {
+const char* cities[] = {
+  "Athens",
+  "San Francisco",
+  "Los Angeles",
+  "Amsterdam",
+  "London",
+  "New York",
+  "Tokyo",
+  "Hong Kong",
+  "Munich",
+  "Miami"
+};
+
+// int *ht_array_global;
+
+/* int main() {
   BF_Init(LRU);
 
   CALL_OR_DIE(HT_Init());
@@ -90,7 +111,7 @@ int main() {
   ht_info.ht_array_head = 0;                // block 0 is the head of the ht_array
   ht_info.ht_array_length = 1;              // there only 1 block needed to store ht_array (yet)
   ht_info.ht_array_size = GLOBAL_DEPTH;     // 2 or GLOBAL_DEPTH pointers of ht_array have been allocated
-  ht_info.num_buckets = 2;                  // total number of buckets/blocks in this ht file 
+  ht_info.num_buckets = 2;                  // total number of buckets/blocks in this ht file
 
   memcpy(headblock, &ht_info, sizeof(HT_info));
   BF_Block_SetDirty(block);
@@ -115,7 +136,7 @@ int main() {
     printf("Error allocating block in HT_CreateFile\n");
     return -1;
   }
-  
+
   BF_GetBlock(ht_info.fileDesc, 1, block);
   data = BF_Block_GetData(block);
   memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
@@ -135,7 +156,7 @@ int main() {
     printf("Error allocating block in HT_CreateFile\n");
     return -1;
   }
-  // CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc)); 
+  // CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc));
 
   Record record;
   srand(time(NULL));
@@ -165,7 +186,7 @@ int main() {
   CALL_OR_DIE(HT_PrintAllEntries(ht_info.fileDesc, NULL));            // print all
 
   // CALL_OR_DIE(HT_CloseFile(indexDesc));
-  
+
   BF_Block_Destroy(&block);
 
   // if (ht_info == NULL) {
@@ -176,5 +197,60 @@ int main() {
     return -1;
   }
   BF_Close();
-  
+
+}
+
+*/
+
+int main()
+{
+  CALL_OR_DIE(HT_Init());
+  int indexDesc;
+  CALL_OR_DIE(HT_CreateIndex(FILE_NAME, BUCKETS_NUM));
+  CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc));
+
+  Record record;
+  srand(12569874);
+  int r;
+  printf("Insert Entries\n");
+  for (int id = 0; id < MAX_RECORDS; ++id)
+  {
+    record.id = id;
+    r = rand() % 12;
+    memcpy(record.name,names[r], strlen(names[r]) + 1);
+    r = rand() % 12;
+    memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
+    r = rand() % 10;
+    memcpy(record.city, cities[r], strlen(cities[r]) + 1);
+
+    CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
+  }
+
+  printf("RUN PrintAllEntries\n");
+  int id = rand() % MAX_RECORDS;
+  // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
+  // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, NULL));
+
+  printf("Print Entry with id = %d\n", id);
+  // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id)); // must print something like : Entry doesn't exist or nothing at all
+
+  id = 0;
+  printf("Print Entry with id = %d\n", id);
+  // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
+
+  id = 1689;
+  printf("Print Entry with id = %d\n", id);
+  // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
+
+  record.id = 1689;
+  CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
+  printf("Print Entry with id = %d\n", id);
+  // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
+
+  id = 30545;
+  printf("Print Entry with id = %d\n", id);
+  // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
+
+  CALL_OR_DIE(HT_CloseFile(indexDesc));
+  BF_Close();
 }

@@ -100,7 +100,8 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 
   /*Hash Table can be stored in multiple blocks --> Create & Initialize more if needed */
 
-  N = pow(2, ht_info.global_depth);                // 2^depth --> number of entries
+  // N = pow(2, ht_info.global_depth);                // 2^depth --> number of entries
+  N = 2 ^ ht_info.global_depth;
   required_blocks = ceil(N / ht_info.max_records); // number of blocks we need for hash table
 
   if (required_blocks > 1) //  if we need more blocks (we already have 1 ht block)

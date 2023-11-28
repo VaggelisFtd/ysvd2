@@ -66,24 +66,24 @@ const char* cities[] = {
 
 int main()
 {
-  printf("I work here 69");
+  printf("I work here 69\n");
   CALL_OR_DIE(HT_Init());
-  printf("I work here 71");
+  printf("I work here 71\n");
   int indexDesc;
   CALL_OR_DIE(HT_CreateIndex(FILE_NAME, BUCKETS_NUM));
-  printf("I work here 74");
+  printf("I work here 74\n");
   CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc));
-  printf("I work here 76");
+  printf("I work here 76\n");
 
   Record record;
   srand(12569874);
   int r;
   printf("Insert Entries\n");
-  printf("I work here 82");
+  printf("I work here 82\n");
 
   for (int id = 0; id < MAX_RECORDS; ++id)
   {
-  printf("I work here 86");
+  printf("I work here 86\n");
     record.id = id;
     r = rand() % 12;
     memcpy(record.name,names[r], strlen(names[r]) + 1);

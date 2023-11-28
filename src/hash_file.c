@@ -156,7 +156,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   memcpy(data, str1, 2);
 
   // Write number of buckets after "HT" string.
-  memcpy(data + 2, &buckets, 4);
+  memcpy(data + 2, &buckets, 4); //!!!
 
   // Save changes to first block.
   BF_Block_SetDirty(block);
@@ -247,14 +247,12 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
   // Bucket doesn't exist:
   if (bucket == 0)
   {
-    // Get number of blocks:
-    int newBlockNum;
+    int newBlockNum; // Get number of blocks:
     CALL_BF(BF_GetBlockCounter(fileDescriptor, &newBlockNum));
 
     // Create bucket:
-    char *recordData;
     CALL_BF(BF_AllocateBlock(fileDescriptor, recordBlock));
-    recordData = BF_Block_GetData(recordBlock);
+    char *recordData = BF_Block_GetData(recordBlock);
 
     // Add new bucket number to index:
     memcpy(indexData, &newBlockNum, sizeof(int));
@@ -271,8 +269,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
     CALL_BF(BF_UnpinBlock(recordBlock));
     BF_Block_Destroy(&recordBlock);
   }
-  else
-  { // Bucket already exists:
+  else // bucket already exists
+  {
     CALL_BF(BF_GetBlock(fileDescriptor, bucket, recordBlock));
     char *recordData = BF_Block_GetData(recordBlock);
     int next;
@@ -291,8 +289,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
     int count;
     memcpy(&count, recordData + sizeof(int), sizeof(int));
 
-    // If block is full:
-    if (count == recordsInBlock)
+    if (count == recordsInBlock) // If block is full:
     {
       // Get number of blocks:
       int newBlockNum;
@@ -316,8 +313,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
       memcpy(recordData + sizeof(int), &count, sizeof(int));
       memcpy(recordData + OFFSET, &record, sizeof(Record));
     }
-    // If block isn't full:
-    else
+    else // If block isn't full:
     {
       memcpy(recordData + (OFFSET) + (count * sizeof(Record)), &record, sizeof(Record));
       count++;

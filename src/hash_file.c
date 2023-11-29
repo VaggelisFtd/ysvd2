@@ -22,17 +22,17 @@
 struct openedIndex
 {
   int fileDesc;
-  int buckets;
+  int blocks;  // buckets
 } typedef openedIndex;
 
 openedIndex *hash_table[MAX_OPEN_FILES];
 
-int openFiles = 0;
+//int openFiles = 0;
 
 // Hash Function
-int hash(int id, int buckets)
+int hash(int id, int blocks)
 {
-  return id % buckets;
+  return id % blocks;
 }
 int dirtyUnpin(BF_Block *block)
 {
@@ -149,15 +149,9 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   BF_Block_Init(&block);
   CALL_BF(BF_AllocateBlock(fd, block));
   data = BF_Block_GetData(block);
-
-  // Write "HT" in the beginning of first block to signify
-  // we have an HT file.
-  char str1[3];
-  strcpy(str1, "HT");
-  memcpy(data, str1, 2);
-
-  // Write number of buckets after "HT" string.
-  memcpy(data + 2, &buckets, 4); //!!!
+  
+  // Write number of blocks after "HT" string.
+  //memcpy(data + 2, &blocks, 4); //!!!
 
   // Save changes to first block.
   BF_Block_SetDirty(block);
@@ -165,7 +159,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 
   // Calculate blocks needed for index.
   int integersInABlock = BF_BLOCK_SIZE / sizeof(int);
-  int blocksNeededForIndex = buckets / integersInABlock + 1;
+  int blocksNeededForIndex = blocks / integersInABlock + 1;
 
   // Allocate blocks for index.
   for (int i = 0; i < blocksNeededForIndex; i++)
@@ -226,8 +220,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
   // Get hashed value:
   openedIndex *indexForInsertion = hash_table[indexDesc];
   int fileDescriptor = indexForInsertion->fileDesc;
-  int buckets = indexForInsertion->buckets;
-  int hashValue = hash(record.id, buckets);
+  int blocks = indexForInsertion->blocks;
+  int hashValue = hash(record.id, blocks);
 
   // Find block in index:
   int integersInABlock = BF_BLOCK_SIZE / sizeof(int);
@@ -335,11 +329,11 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
 {
   openedIndex *indexForInsertion = hash_table[indexDesc];
   int fd = indexForInsertion->fileDesc;
-  int buckets = indexForInsertion->buckets;
+  int blocks = indexForInsertion->blocks;
 
   // Calculate blocks in index.
   int integersInABlock = BF_BLOCK_SIZE / sizeof(int);
-  int blocksInIndex = buckets / integersInABlock + 1;
+  int blocksInIndex = blocks / integersInABlock + 1;
 
   BF_Block *recordBlock;
   BF_Block_Init(&recordBlock);
@@ -370,7 +364,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
   else
   { // Otherwise find the record in the hash table using the same operations as in InsertEntry
     Record *record;
-    int hashValue = hash(*id, buckets);
+    int hashValue = hash(*id, blocks);
     int blockToGoTo = hashValue / integersInABlock + 1;
     int positionInBlock = hashValue % integersInABlock;
 

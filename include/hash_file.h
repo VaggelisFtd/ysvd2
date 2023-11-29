@@ -26,7 +26,7 @@ typedef enum HT_ErrorCode {
 
 typedef struct {
 	bool is_ht;					// TRUE is ht file
-    int fileDesc;              	// identifier number for opening file from block
+    //int fileDesc;              	// identifier number for opening file from block
 	int global_depth;			// 
 	int ht_id;					// block id of fisrt ht block
     int max_records;            // max number of records that can be stored

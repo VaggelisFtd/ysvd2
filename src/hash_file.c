@@ -22,13 +22,10 @@
 struct openedIndex
 {
   int fileDesc;
-  int blocks;  // buckets
+  int blocks; // buckets
 } typedef openedIndex;
 
 openedIndex *hash_table[MAX_OPEN_FILES];
-
-//int openFiles = 0;
-
 // Hash Function
 int hash(int id, int blocks)
 {
@@ -73,85 +70,19 @@ HT_ErrorCode HT_Init()
 /*we don't check for max open files beacause we can create, as many as we want, but we can only have 20 open*/
 HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 {
-  // HT_info ht_info;
-  // BF_Block *block;
-  // BF_Block *ht_block;
-  // BF_Block *next_ht_block;
-  // void *data;
-  // int file_desc, N, required_blocks, i, curr_id;
-
-  // /*create file and open it*/
-  // CALL_BF(BF_CreateFile(filename));
-  // CALL_BF(BF_OpenFile(filename, &ht_info.fileDesc));
-
-  // /* 1st block: init metadata */
-  // BF_Block_Init(&block);
-  // CALL_BF(BF_AllocateBlock(ht_info.fileDesc, block));
-  // data = BF_Block_GetData(block);
-
-  // /*ht info initialization*/
-  // ht_info.is_ht = true;
-  // ht_info.global_depth = depth;
-  // ht_info.ht_id = -1;
-  // ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
-  // ht_info.max_ht = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(HT_block_info);
-
-  // /*2nd block: hashtable */
-  // BF_Block_Init(&ht_block);
-  // CALL_BF(BF_AllocateBlock(ht_info.fileDesc, ht_block));
-  // CALL_BF(BF_GetBlockCounter(ht_info.fileDesc, &ht_info.ht_id)); // number 2 will be saved in ht_id (ht block is 2nd block, ht_id is the id of this block)
-  // data = BF_Block_GetData(ht_block);                             // initialize ht block
-  // memcpy(data, &ht_info.ht_id, sizeof(int));                     // save ht_id in data
-
-  // /*Hash Table can be stored in multiple blocks --> Create & Initialize more if needed */
-
-  // // N = pow(2, ht_info.global_depth);                // 2^depth --> number of entries
-  // N = 2 ^ ht_info.global_depth;  //cant read pow
-  // required_blocks = ceil(N / ht_info.max_records); // number of blocks we need for hash table
-
-  // if (required_blocks > 1) //  if we need more blocks (we already have 1 ht block)
-  // {
-  //   BF_Block_Init(&next_ht_block);
-  //   for (int i = 1; i < required_blocks; i++)
-  //   {
-  //     CALL_BF(BF_AllocateBlock(file_desc, next_ht_block));
-  //     CALL_BF(BF_GetBlockCounter(ht_info.fileDesc, &curr_id)); // Get number (id) of the new block
-
-  //     memcpy(data, &curr_id, sizeof(int));
-  //     data = BF_Block_GetData(next_ht_block); // initialize ht block
-
-  //     // memcpy(ht_info.max_ht)    // memcpy gia max_ht --> loop apo 0 ews max_ht ++ alla ti mpainei sthn memcpy???
-  //     dirtyUnpin(next_ht_block);
-  //     ht_block = next_ht_block; // h next_ht_block = ht_block???
-  //   }
-  // }
-  // memcpy(data, &ht_info, sizeof(HT_info)); // Write the meta-data to the first block
-
-  // /* Set blocks as dirty & unpin them, so that they are saved in the disc */
-  // dirtyUnpin(block);
-  // dirtyUnpin(ht_block);
-
-  // /* Call Destroy to free the memory */
-  // BF_Block_Destroy(&block);
-  // BF_Block_Destroy(&ht_block);
-
-  // CALL_BF(BF_CloseFile(ht_info.fileDesc)); // Close the file
-
-  // return HT_OK;
-
   int fd;
   CALL_BF(BF_CreateFile(filename));
   CALL_BF(BF_OpenFile(filename, &fd));
-
+  openedIndex file;
   // Create first block.
   BF_Block *block;
   char *data;
   BF_Block_Init(&block);
   CALL_BF(BF_AllocateBlock(fd, block));
   data = BF_Block_GetData(block);
-  
-  // Write number of blocks after "HT" string.
-  //memcpy(data + 2, &blocks, 4); //!!!
+
+  // memcpy(data + 2 * sizeof(char), &block, sizeof(int));
+  memcpy(data + 2, &depth, 4);
 
   // Save changes to first block.
   BF_Block_SetDirty(block);
@@ -159,7 +90,9 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 
   // Calculate blocks needed for index.
   int integersInABlock = BF_BLOCK_SIZE / sizeof(int);
-  int blocksNeededForIndex = blocks / integersInABlock + 1;
+  int blocksNeededForIndex = depth / integersInABlock + 1;
+
+  int N = pow(2, ht_info.global_depth);  
 
   // Allocate blocks for index.
   for (int i = 0; i < blocksNeededForIndex; i++)
@@ -176,11 +109,11 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 
 HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
 {
-  /* Open files are at maximum - we can't open more */
+/**/  /* Open files are at maximum - we can't open more */
   if (checkOpenFiles() == HT_ERROR)
     return HT_ERROR;
 
-  // HT_info *ht_info;
+  HT_info *ht_info;
   BF_Block *block;
   void *data;
 
@@ -194,10 +127,10 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
   {
     if (hash_table[i] == NULL)
     {
-      // hash_table[i] = (HT_info *)malloc(sizeof(HT_info));
-      hash_table[i] = malloc(sizeof(openedIndex));
+      hash_table[i] = (HT_info *)malloc(sizeof(HT_info));
+       // hash_table[i] = malloc(sizeof(openedIndex));
       data = BF_Block_GetData(block);
-      // ht_info = data;
+      ht_info = data;
       break;
     }
   }

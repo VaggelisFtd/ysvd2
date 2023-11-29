@@ -79,7 +79,7 @@ int main()
   int r;
   printf("Insert Entries\n");
   printf("I work here 82\n");
-
+  
   for (int id = 0; id < MAX_RECORDS; ++id)
   {
   printf("I work here 86\n");
@@ -90,9 +90,10 @@ int main()
     memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
     r = rand() % 10;
     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
+    
 
-    CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
-    printf("I work here 96");
+    // CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
+    printf("I work here 96\n");
   }
   
   printf("RUN PrintAllEntries\n");
@@ -101,7 +102,7 @@ int main()
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc, NULL));
 
   printf("Print Entry with id = %d\n", id);
-  CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id)); // must print something like : Entry doesn't exist or nothing at all
+  CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));   // must print something like : Entry doesn't exist or nothing at all
 
   id = 0;
   printf("Print Entry with id = %d\n", id);

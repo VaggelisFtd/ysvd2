@@ -70,6 +70,70 @@ HT_ErrorCode HT_Init()
 /*we don't check for max open files beacause we can create, as many as we want, but we can only have 20 open*/
 HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 {
+  /*
+   HT_info ht_info;
+  BF_Block* block;
+  BF_Block* ht_block;
+  BF_Block* next_ht_block;
+  void *data, *meta_data;
+  int file_desc, N, required_blocks, i, curr_id;
+
+  CALL_BF(BF_CreateFile(filename));
+
+  CALL_BF(BF_OpenFile(filename, &ht_info.fileDesc));
+
+  // META DATA BLOCK --> first
+
+  InAl(ht_info.fileDesc,block);
+
+  data = BF_Block_GetData(block);
+
+  // na doume analoga me ta structs ---
+  ht_info.is_ht = true;
+  ht_info.global_depth = depth;
+  ht_info.ht_id = -1;
+  ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record); // floor? --> bfr
+  ht_info.max_ht = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(HT_block_info); // mallon????
+
+  // HASH TABLE BLOCK --> second
+  /*----------------------------------------------------------------------------------------------------------------------------*/
+
+  InAl(ht_info.fileDesc,ht_block);
+
+  // number 2 will be saved in ht_id (since ht_block is the 2nd block)
+  CALL_BF(BF_GetBlockCounter(ht_info.fileDesc, &ht_info.ht_id));
+  ht_info.ht_id --;//so we reduce it (block id of 1st block:0 and of 2nd block:1)
+
+  // initialize ht block
+  data = BF_Block_GetData(ht_block);
+  memcpy(data, &ht_info.ht_id, sizeof(int)); //save ht_id in data
+  //initialize all max_ht ??
+  
+  // Hash Table can be stored in multiple blocks --> Create & Initialize more if needed
+
+  N = pow(2, ht_info.global_depth); // 2^depth --> number of entries
+
+  required_blocks = ceil(N / ht_info.max_records); // number of blocks we need for hash table
+
+  if (required_blocks > 1){     //  if we need more blocks (we already have 1 ht block)
+    for(i=1; i<required_blocks; i++)
+    {  
+      InAl(file_desc,next_ht_block);
+
+      // Get number (id) of the new block
+      CALL_BF(BF_GetBlockCounter(ht_info.fileDesc, &curr_id));
+      curr_id--; // curr_id was the number of blocks we have now but its id is this number minus 1 since block 1 has id=0
+      memcpy(data, &curr_id, sizeof(int));
+
+      //initialize ht block
+      data = BF_Block_GetData(next_ht_block);
+      //memcpy(data, &ht_info.ht_id, sizeof(int)); 
+      //memcpy gia max_ht --> loop apo 0 ews max_ht ++ alla ti mpainei sthn memcpy??? (same as line 104)
+
+      DirtyUnpin(ht_block);
+
+      ht_block = next_ht_block; // the previous one shows the next one
+    }*/
   int fd;
   CALL_BF(BF_CreateFile(filename));
   CALL_BF(BF_OpenFile(filename, &fd));

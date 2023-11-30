@@ -175,7 +175,7 @@ int main() {
   // printf("Inserting %d Entries\n", MAX_RECORDS);
   printf("Inserting 5 Entries\n");
   // for (int id = 0; id < MAX_RECORDS; ++id) {
-  for (int id = 0; id < 20; ++id) {
+  for (int id = 0; id < 17; ++id) {
     // create a record
     record.id = id;
     r = rand() % 12;

@@ -152,7 +152,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   
   // Check if bucket has enough space for the Record
   int target_block_id = ht_info.ht_array[bucket_to_insert];
-  printf(" Trying to insert record id: %d in block %d\n", record.id, target_block_id);
+  printf("\n Trying to insert record id: %d in block %d\n", record.id, target_block_id);
   // Pin target block
   if (BF_GetBlock(indexDesc, target_block_id, block) < 0) {
     printf("Error getting block in HT_InsertEntry\n");
@@ -191,9 +191,12 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   else {
     // if there is not enough space in tthe target block
     printf(" =====PLEON DEN XWRANE RECORDS STO BLOCK %d======== \n", target_block_id);
+    
     // kapou edw na kanw k unpin to gemato target block
     // prepei na ginei edw H pio katw? (h ka8olou, pou de nomizw)
     // Firstly we write back in memory the full target_block
+    // ???
+    // mallon den prepei na ginei edw, gt pio katw 8elw na xanakanw Insert() tis eggrafes tou
     if ((BF_UnpinBlock(block)) < 0) {
       printf("Error unpinning block in HT_InsertEntry\n");
       return -1;
@@ -221,13 +224,16 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
     
     // Check if more than 1 ht_array indexes point to the FULL BLOCK
     // if(ht_block_info.local_depth < ht_info.global_depth) {
-    if((ht_block_info.local_depth < ht_info.global_depth) && (ht_block_info.indexes_pointed_by > 1)) { // xreiazetai o extra elegxos h einai akrivws to idio pragma???
+    if((ht_block_info.local_depth < ht_info.global_depth) || (ht_block_info.indexes_pointed_by > 1)) { // xreiazetai o extra elegxos h einai akrivws to idio pragma???
       // Make the CURRENT POINTER point to the newly allocated block (keeping all other "indexes_pointed_by" pointers pointing to same block as before)
       ht_info.ht_array[bucket_to_insert] = new_block_id;
 
       // Re-write it to Block 0
       BF_Block* headblock;
       char* headdata;
+      printf("ht_block_info.local_depth = %d and ht_info.global_depth = %d\n", ht_block_info.local_depth, ht_info.global_depth);
+      // if (BF_GetBlock(ht_info.fileDesc, 0, headblock) < 0) {
+      // This Getlock below makes Seg (only above 16 Recs inserted)
       if (BF_GetBlock(indexDesc, 0, headblock) < 0) {
         printf("Error getting block in HT_InsertEntry\n");
         return -1;
@@ -244,11 +250,13 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         Record temp_record;      
         // copy in our variable temp_record, the contents of the current record we are reading
         memcpy(&temp_record, data + k, sizeof(Record));
+        // if (!HT_InsertEntry(indexDesc, temp_record))
         if (!HT_InsertEntry(ht_info.fileDesc, temp_record))
           return HT_ERROR;
       }
       
       // Now once more for the Record_to_insert as we said above
+      if (!HT_InsertEntry(indexDesc, record))
       if (!HT_InsertEntry(ht_info.fileDesc, record))
         return HT_ERROR;
       
@@ -277,6 +285,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
     else if (ht_block_info.local_depth == ht_info.global_depth) {
       int old_ht_array_size = ht_info.ht_array_size;
       int new_ht_array_size = 2 * old_ht_array_size;
+        printf("new array size ========================================== %d\n", new_ht_array_size);
 
       // Make sure it is stored correctly updating blocks containing the ht_array using ht_info (next_block ect.)
       // ...
@@ -293,6 +302,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         return -1;
       }
 
+
+    //////////////  =========== mhpws na einai pio katw to unpin?
       // Re-write it to Block 0
       char* headblock;
       // get pointer to block 0 data
@@ -301,8 +312,11 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       memcpy(headblock, &ht_info, sizeof(HT_info));
       BF_Block_SetDirty(block);
       BF_UnpinBlock(block); // mhpws den prepei na einai edw?
+    //////////////  =========== mhpws na einai pio katw to unpin?
 
-      // explaining comment
+    
+
+      // add explanation comment
       for (int i=old_ht_array_size ; i < new_ht_array_size ; i++) {
         // ara o 1os kainourios pointer deixnei ekei pou edeixne o pointer 0, o 2os ekei pou edeixne o 1 klp, opws k to deixnei stis diafaneies
         ht_info.ht_array[i] = ht_info.ht_array[i - old_ht_array_size];

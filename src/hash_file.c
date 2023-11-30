@@ -160,7 +160,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
     CALL_BF(BF_CloseFile(fd));
     return HT_OK;
   }
-
+}
   HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
   {
     /**/ /* Open files are at maximum - we can't open more */

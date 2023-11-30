@@ -77,27 +77,19 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   BF_Block* next_ht_block;
   void *data, *meta_data;
   int file_desc, N, required_blocks, i, curr_id;
-
   CALL_BF(BF_CreateFile(filename));
-
   CALL_BF(BF_OpenFile(filename, &ht_info.fileDesc));
-
   // META DATA BLOCK --> first
-
   InAl(ht_info.fileDesc,block);
-
   data = BF_Block_GetData(block);
-
   // na doume analoga me ta structs ---
   ht_info.is_ht = true;
   ht_info.global_depth = depth;
   ht_info.ht_id = -1;
   ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record); // floor? --> bfr
   ht_info.max_ht = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(HT_block_info); // mallon????
-
   // HASH TABLE BLOCK --> second
   /*----------------------------------------------------------------------------------------------------------------------------*/
-
   InAl(ht_info.fileDesc,ht_block);
 
   // number 2 will be saved in ht_id (since ht_block is the 2nd block)

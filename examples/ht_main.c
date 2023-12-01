@@ -125,7 +125,8 @@ int main() {
   ht_info.ht_array = ht_array_global;       // space for 2 blocks/buckets
   ht_info.ht_array_head = 0;                // block 0 is the head of the ht_array
   ht_info.ht_array_length = 1;              // there only 1 block needed to store ht_array (yet)
-  ht_info.ht_array_size = GLOBAL_DEPTH;     // 2 or GLOBAL_DEPTH pointers of ht_array have been allocated
+  // ht_info.ht_array_size = GLOBAL_DEPTH;     // 2 or GLOBAL_DEPTH pointers of ht_array have been allocated
+  ht_info.ht_array_size = 4;
   ht_info.num_blocks = 2;                  // total number of buckets/blocks in this ht file 
 
   memcpy(headblock, &ht_info, sizeof(HT_info));
@@ -179,7 +180,7 @@ int main() {
   // printf("Inserting %d Entries\n", MAX_RECORDS);
   printf("Inserting 5 Entries\n");
   // for (int id = 0; id < MAX_RECORDS; ++id) {
-  for (int id = 0; id < 17; ++id) {
+  for (int id = 0; id < 32; ++id) {
     // create a record
     record.id = id;
     r = rand() % 12;

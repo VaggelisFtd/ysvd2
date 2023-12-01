@@ -82,7 +82,6 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   HT_info ht_info;
   HT_block_info ht_block_info;
   BF_Block* block;
-  BF_Block* next_block;
   void* data;
   int fd;
   int fd2;
@@ -102,7 +101,8 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   ht_info.fileDesc = fd;
   ht_info.global_depth = depth;
   ht_info.ht_id = -1;
-  ht_info.max_records = (BF_BLOCK_SIZE - OFFSET) / sizeof(Record); //!
+  //ht_info.max_records = (BF_BLOCK_SIZE - OFFSET) / sizeof(Record); //!
+  ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
   ht_info.max_ht = (BF_BLOCK_SIZE - sizeof(int))/sizeof(int);   //!
 
   memcpy(block, &ht_info, sizeof(HT_info));
@@ -114,6 +114,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 
   for (int i = 0; i < required_blocks; i++)
   {
+    BF_Block *next_block;
     InAl(fd2, next_block);
     if (i==0) // save hash table's first block id
     {
@@ -126,6 +127,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
     memcpy(next_block, &ht_info, sizeof(HT_info));
 
     DirtyUnpin(next_block);
+    BF_Block_Destroy(&next_block);
   }
 
   DirtyUnpin(block);
@@ -135,14 +137,13 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   // data = BF_Block_GetData(block);
   // ht_block_info.num_records = 0;
   // ht_block_info.local_depth = depth;  //!
-  // max records = MAX_RECORDS;  //!
+  // ht_block_info.max_records = MAX_RECORDS;  //!
   // ht_block_info.next_block = 0;
   // memcpy(data, &ht_block_info, sizeof(HT_block_info));
 
-  dirtyUnpin(block);
+  // DirtyUnpin(block);
 
   BF_Block_Destroy(&block);
-  BF_Block_Destroy(&next_block);
 
   CALL_BF(BF_CloseFile(ht_info.fileDesc));
 
@@ -151,7 +152,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 
   HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
   {
-    /**/ /* Open files are at maximum - we can't open more */
+    /* Open files are at maximum - we can't open more */
     if (checkOpenFiles() == HT_ERROR)
       return HT_ERROR;
 
@@ -169,14 +170,21 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
     {
       if (hash_table[i] == NULL)
       {
-        hash_table[i] = (HT_info *)malloc(sizeof(HT_info));
-        // hash_table[i] = malloc(sizeof(openedIndex));
+        hash_table[i] = (openedIndex *)malloc(sizeof(openedIndex));
+        //hash_table[i] = (HT_info *)malloc(sizeof(HT_info));
+        if (hash_table[i] == NULL) 
+        {
+          perror("malloc");
+          return -1;
+        }
         data = BF_Block_GetData(block);
         ht_info = data;
         break;
       }
     }
+
     CALL_BF(BF_UnpinBlock(block));
+
     return HT_OK;
   }
 

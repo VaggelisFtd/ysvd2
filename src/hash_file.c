@@ -131,15 +131,15 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   DirtyUnpin(block);
 
   // allocate another block for HT_block_info --> end of file
-  CALL_BF(BF_AllocateBlock(fd, block));
-  data = BF_Block_GetData(block);
-  ht_block_info.num_records = 0;
-  ht_block_info.local_depth = depth;
-  //max records?
-  ht_block_info.next_block = 0;
-  memcpy(data, &ht_block_info, sizeof(HT_block_info));
+  // CALL_BF(BF_AllocateBlock(fd, block));
+  // data = BF_Block_GetData(block);
+  // ht_block_info.num_records = 0;
+  // ht_block_info.local_depth = depth;
+  // max records = MAX_RECORDS;
+  // ht_block_info.next_block = 0;
+  // memcpy(data, &ht_block_info, sizeof(HT_block_info));
 
-  dirtyUnpin(block);
+  // DirtyUnpin(block);
 
   BF_Block_Destroy(&block);
   BF_Block_Destroy(&next_block);

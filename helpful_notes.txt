@@ -8,6 +8,11 @@ Insert:
         - connect it to the ht_array
         - and palce the record inside
 #    **) if bucket/block is NOT empty    // ====================== UPARXEI SIGOURA AUTH H PERIPTWSH ??? ====================
+
+
+
+
+
         // Check if bucket/block has enough space for the Record
         1) if there is enough space
             a) place the record as last in this bucket/block
@@ -29,10 +34,10 @@ Insert:
                     - 
                     // h pio apla (epeidh mallon to parapanw ginetai handle (dld isomoirazontai oi deiktes) sto IF NOT apo katw)
                     - Make the CURRENT POINTER point to the newly allocated block (keeping all other K pointers pointing to same block as before)
-                    - for each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (with 1 more bucket this time)
                     - ! FULL BLOCK -> local_depth++;
                     - ! newly allocated block -> local_depth = FULL BLOCK -> local_depth (ananeomeno kata +1 pleon apo thn prohgoumenh grammh);
                         (8a 8elame na kaname local_depth++, alla den exei local_depth, ara pairnoume to antistoixo tou FULL BLOCK)
+                    - for each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (with 1 more bucket this time)
 
                 ii) if not : ht_block_info.indexes_pointed_by == 1 && (local deapth == global_depth) // sa na elegxw to idio pragma
                     //

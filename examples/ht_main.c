@@ -109,20 +109,24 @@ int main() {
   headblock = BF_Block_GetData(block);
   // ===
   // ht_array_global = malloc(GLOBAL_DEPTH * sizeof(int));
-  ht_array_global = malloc(2 * sizeof(int));
+  ht_array_global = malloc(4 * sizeof(int));
   // ht_array_global[0] = 0;
   // ht_array_global[1] = 1;
-  for (int i=0 ; i<2 ; i++)
+  for (int i=0 ; i<2 ; i++) {
     ht_array_global[i] = i+1;
+    ht_array_global[i+2] = i+1;
+  }
   // ===
   ht_info.is_ht = true;
-  ht_info.global_depth = GLOBAL_DEPTH;      // xekiname me 2 buckets (00, 01 i guess)
+  // ht_info.global_depth = GLOBAL_DEPTH;
+  // ht_info.global_depth = 1;                 // xekiname me 2 buckets (kai blocks: 0, 1 i guess) -> ara global_depth = 1
+  ht_info.global_depth = 2;                 // xekiname me 4 buckets (kai blocks: 0, 1, 2, 3) -> ara global_depth = 2
   // ht_info.ht_array = malloc(GLOBAL_DEPTH * sizeof(int)); // space for 2 blocks/buckets
   ht_info.ht_array = ht_array_global;       // space for 2 blocks/buckets
   ht_info.ht_array_head = 0;                // block 0 is the head of the ht_array
   ht_info.ht_array_length = 1;              // there only 1 block needed to store ht_array (yet)
   ht_info.ht_array_size = GLOBAL_DEPTH;     // 2 or GLOBAL_DEPTH pointers of ht_array have been allocated
-  ht_info.num_buckets = 2;                  // total number of buckets/blocks in this ht file 
+  ht_info.num_blocks = 2;                  // total number of buckets/blocks in this ht file 
 
   memcpy(headblock, &ht_info, sizeof(HT_info));
   BF_Block_SetDirty(block);

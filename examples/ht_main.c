@@ -69,7 +69,7 @@ int main()
   CALL_OR_DIE(HT_Init());
   printf("I work here 71\n");
   int indexDesc;
-  CALL_OR_DIE(HT_CreateIndex(FILE_NAME, BUCKETS_NUM));
+  CALL_OR_DIE(HT_CreateIndex(FILE_NAME, 4)); //was (FILE_NAME, BUCKETS_NUM)
   printf("I work here 74\n");
   CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc));
   printf("I work here 76\n");
@@ -82,18 +82,22 @@ int main()
   
   for (int id = 0; id < MAX_RECORDS; ++id)
   {
-    //printf("I work here 86\n");
+    printf("I work here 86\n");
     record.id = id;
     r = rand() % 12;
+    printf("I work here 88\n");
     memcpy(record.name,names[r], strlen(names[r]) + 1);
     r = rand() % 12;
+    printf("I work here 91\n");
     memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
     r = rand() % 10;
+    printf("I work here 94\n");
     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
 
+    printf("I work here 97\n");
 
-    // CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
-    //printf("I work here 96\n");
+    CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
+    printf("I work here 96\n");
   }
   
   int id = rand() % MAX_RECORDS;

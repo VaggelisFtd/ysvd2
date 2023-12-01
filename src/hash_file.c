@@ -64,7 +64,7 @@ void printCustomRecord(Record *record)
 
 HT_ErrorCode HT_Init()
 {
-  CALL_BF(BF_Init(LRU));
+  //CALL_BF(BF_Init(LRU));
   for (int i = 0; i < MAX_OPEN_FILES; i++)
     hash_table[i] = NULL;
 
@@ -108,7 +108,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 
   required_blocks = ceil(N / ht_info.max_records); // number of blocks we need for hash table
 
-  printf("required blocks for hash table: %d\n", required_blocks); // --------------> correct?
+  printf("required blocks for hash table: %d\n", required_blocks);
 
   for (int i = 0; i < required_blocks; i++)
   {
@@ -134,7 +134,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   CALL_BF(BF_AllocateBlock(fd, block));
   data = BF_Block_GetData(block);
   ht_block_info.num_records = 0;
-  ht_block_info.local_depth = depth;  //!
+  ht_block_info.local_depth = depth;
   ht_block_info.max_records = MAX_RECORDS;  //!
   ht_block_info.next_block = 0;
   memcpy(data, &ht_block_info, sizeof(HT_block_info));
@@ -143,7 +143,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 
   BF_Block_Destroy(&block);
 
-  //CALL_BF(BF_CloseFile(ht_info.fileDesc)); den doukevei-->giati? afou kaloume open
+  //CALL_BF(BF_CloseFile(ht_info.fileDesc)); den doulevei-->giati? afou kaloume open
 
   return HT_OK;
 }

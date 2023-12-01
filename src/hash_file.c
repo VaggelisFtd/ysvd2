@@ -33,7 +33,7 @@ int hash(int id, int blocks)
   return id % blocks;
 }
 
-int dirtyUnpin(BF_Block *block)
+int DirtyUnpin(BF_Block *block)
 {
   BF_Block_SetDirty(block);
   CALL_BF(BF_UnpinBlock(block));

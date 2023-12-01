@@ -39,11 +39,6 @@ int DirtyUnpin(BF_Block *block)
   CALL_BF(BF_UnpinBlock(block));
 }
 
-int InAl(int fileDesc, BF_Block* block){
-  BF_Block_Init(&block);
-  CALL_BF(BF_AllocateBlock(fileDesc, block));
-}
-
 int checkOpenFiles()
 {
   int i;
@@ -84,68 +79,71 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   BF_Block* block;
   void* data;
   int fd;
-  int fd2;
   int N;
   int required_blocks;
 
   CALL_BF(BF_CreateFile(filename));
-  CALL_BF(BF_OpenFile(filename, &fd));
+  CALL_BF(BF_OpenFile(filename, &ht_info.fileDesc));
 
   // META DATA BLOCK --> first
 
-  InAl(fd,block);
+  BF_Block_Init(&block);
+  CALL_BF(BF_AllocateBlock(ht_info.fileDesc, block));
 
   data = BF_Block_GetData(block);
 
   ht_info.is_ht = true;
-  ht_info.fileDesc = fd;
   ht_info.global_depth = depth;
   ht_info.ht_id = -1;
-  //ht_info.max_records = (BF_BLOCK_SIZE - OFFSET) / sizeof(Record); //!
   ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
-  ht_info.max_ht = (BF_BLOCK_SIZE - sizeof(int))/sizeof(int);   //!
+  ht_info.max_ht = (BF_BLOCK_SIZE - sizeof(int))/sizeof(int);   //! size of ht info?
 
   memcpy(block, &ht_info, sizeof(HT_info));
 
   // HASH TABLE BLOCK --> second
 
   N = pow(2, ht_info.global_depth); // 2^depth --> number of entries
+
+  printf("2^depth=%d\n", N);
+
   required_blocks = ceil(N / ht_info.max_records); // number of blocks we need for hash table
+
+  printf("required blocks for hash table: %d\n", required_blocks); // --------------> correct?
 
   for (int i = 0; i < required_blocks; i++)
   {
     BF_Block *next_block;
-    InAl(fd2, next_block);
+    BF_Block_Init(&next_block);
+    CALL_BF(BF_AllocateBlock(fd, next_block));
     if (i==0) // save hash table's first block id
     {
       CALL_BF(BF_GetBlockCounter(ht_info.fileDesc, &ht_info.ht_id)); // this gives 1
       ht_info.ht_id--;  // but id is 0
-      data = BF_Block_GetData(next_block);
-      memcpy(data, &ht_info.ht_id, sizeof(int)); // save ht_id in data
     }
-
-    memcpy(next_block, &ht_info, sizeof(HT_info));
+    data = BF_Block_GetData(next_block);
+    memcpy(data, &ht_info, sizeof(HT_info));
 
     DirtyUnpin(next_block);
+
     BF_Block_Destroy(&next_block);
   }
 
   DirtyUnpin(block);
 
   // allocate another block for HT_block_info --> end of file
-  // CALL_BF(BF_AllocateBlock(fd, block));
-  // data = BF_Block_GetData(block);
-  // ht_block_info.num_records = 0;
-  // ht_block_info.local_depth = depth;  //!
-  // ht_block_info.max_records = MAX_RECORDS;  //!
-  // ht_block_info.next_block = 0;
-  // memcpy(data, &ht_block_info, sizeof(HT_block_info));
+  CALL_BF(BF_AllocateBlock(fd, block));
+  data = BF_Block_GetData(block);
+  ht_block_info.num_records = 0;
+  ht_block_info.local_depth = depth;  //!
+  ht_block_info.max_records = MAX_RECORDS;  //!
+  ht_block_info.next_block = 0;
+  memcpy(data, &ht_block_info, sizeof(HT_block_info));
 
-  // DirtyUnpin(block);
+  DirtyUnpin(block);
 
   BF_Block_Destroy(&block);
 
-  CALL_BF(BF_CloseFile(ht_info.fileDesc));
+  //CALL_BF(BF_CloseFile(ht_info.fileDesc)); den doukevei-->giati? afou kaloume open
 
   return HT_OK;
 }

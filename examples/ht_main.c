@@ -82,7 +82,7 @@ int main()
   
   for (int id = 0; id < MAX_RECORDS; ++id)
   {
-  printf("I work here 86\n");
+    //printf("I work here 86\n");
     record.id = id;
     r = rand() % 12;
     memcpy(record.name,names[r], strlen(names[r]) + 1);
@@ -90,14 +90,14 @@ int main()
     memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
     r = rand() % 10;
     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
-    
+
 
     // CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
-    printf("I work here 96\n");
+    //printf("I work here 96\n");
   }
   
-  printf("RUN PrintAllEntries\n");
   int id = rand() % MAX_RECORDS;
+  printf("RUN PrintAllEntries\n");
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc, NULL));
 

@@ -134,7 +134,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   CALL_BF(BF_AllocateBlock(fd, block));
   data = BF_Block_GetData(block);
   ht_block_info.num_records = 0;
-  ht_block_info.local_depth = depth;
+  ht_block_info.local_depth = 0;
   ht_block_info.max_records = MAX_RECORDS;  //!
   ht_block_info.next_block = 0;
   memcpy(data, &ht_block_info, sizeof(HT_block_info));

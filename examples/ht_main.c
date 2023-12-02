@@ -206,7 +206,7 @@ int main() {
   printf("Inserting 32 Entries\n");
   // for (int id = 0; id < MAX_RECORDS; ++id) {
   // for (int id = 0; id < 64; ++id) {
-  for (int id = 0; id < 32; ++id) {
+  for (int id = 0; id < 66; ++id) {
     // create a record
     record.id = id;
     r = rand() % 12;
@@ -230,6 +230,11 @@ int main() {
   // CALL_OR_DIE(HT_CloseFile(indexDesc));
   
   BF_Block_Destroy(&block);
+
+  // for(int i=0; i<ht_info.ht_array_size ; i++) {
+  //   free(ht_info.ht_array);
+  // }
+  free(ht_info.ht_array);
 
   // if (ht_info == NULL) {
   //   return -1;

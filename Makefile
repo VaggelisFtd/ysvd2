@@ -17,3 +17,5 @@ clean:
 	rm ./build/ht_multiple_main
 	
 	rm data.db
+	rm test_hash_file1.db
+	rm test_hash_file2.db

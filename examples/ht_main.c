@@ -95,15 +95,14 @@ int main()
   // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
   // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, NULL));
 
+  id = 0;
   printf("Print Entry with id = %d\n", id);
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
-  id = 0;
 
   printf("Print Entry with id = %d\n", id);
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
 
   id = 10;
-
   printf("Print Entry with id = %d\n", id);
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
 

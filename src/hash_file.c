@@ -149,11 +149,11 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 	// check in IF if we unpin it more than once -> makes Seg!!!
 
 	// In which bucket to insert
-	int bucket_to_insert = hash2(record.id, ht_info.num_blocks);
-	if(bucket_to_insert < 0 || bucket_to_insert >= ht_info.num_blocks) {
+	int bucket_to_insert = hash2(record.id, ht_info.ht_array_size);
+	if(bucket_to_insert < 0 || bucket_to_insert >= ht_info.ht_array_size) {
 		return -1;
 	}
-	assert(bucket_to_insert >= 0 && bucket_to_insert < ht_info.num_blocks);
+	assert(bucket_to_insert >= 0 && bucket_to_insert < ht_info.ht_array_size);
 	
 	// Check if bucket has enough space for the Record
 	int target_block_id = ht_info.ht_array[bucket_to_insert];
@@ -168,7 +168,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 	// copy its data to our local var
 	memcpy(&ht_block_info, target_data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
 	// Check if there is room to add the record
-	// if (ht_block_info.local_depth < ht_info.global_depth) {    // maybe we MUST use this one - or are depths just for pointers and not space in a block?
 	printf(" ht_block_info.num_records = %d, ht_block_info.max_records %d\n", ht_block_info.num_records, ht_block_info.max_records);
 	if (ht_block_info.num_records < ht_block_info.max_records) {
 		
@@ -267,28 +266,31 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 		printf("ht_info.global_depth = %d\n", ht_info.global_depth);
 		if((ht_block_info.local_depth < ht_info.global_depth) || (ht_block_info.indexes_pointed_by > 1)) {
 		// if(ht_block_info.local_depth < ht_info.global_depth) {
+      ht_block_info.local_depth++;
+      new_ht_block_info.local_depth++;
 
 			printf("MPHKA\n");
 			// And make all other indexes pointing to FULL target block, point to its (empty) replacement block
 			int i = 0;
-			int flag = 1;
+			int count = 0;
+      int old_num_indexes = ht_block_info.indexes_pointed_by;
 			// int full_block_insex_count = 0; // logika den xreiazetai afou ebala to indexes--;
 			printf("ht_info.ht_array_size = %d\n", ht_info.ht_array_size);
 			printf("\n");
 			for(int j=0 ; j < ht_info.ht_array_size ; j++)
 				printf("ht_info.ht_array[%d] = %d\n", j, ht_info.ht_array[j]);
+      printf("old_num_indexes = %d\n", old_num_indexes);
 			// Iterate through ht_array
 			do {
 				// For each index pointing to full target block
 				if (ht_info.ht_array[i] == target_block_id) {
-					// In order to equally distribute the indexes pointing to full block to the its' replacement and the new block
-					if (flag == 0) {
+					// In order to equally distribute the indexes pointing to full block and the new block
+					if (count >= old_num_indexes/2) {
 						ht_info.ht_array[i] = new_block_id;
 						new_ht_block_info.indexes_pointed_by++;
 						ht_block_info.indexes_pointed_by--;
-					}
-					// Alternate between new_block and full_block (flag = 0 <-> 1)
-					flag = 1 - flag;
+          }
+          count++;
 				}
 				i++;
 			} while (i < ht_info.ht_array_size); // minus the above target re-routed one
@@ -383,11 +385,11 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 			// NA DW TI 8A KANW ME TA IDS TWN BLOCKS - kinda solved me .num_records = 0;
 
 		}
-		// else {
+		else {
 			// At this point ht_block_info contains target_block's info
 			// Check if more than 1 ht_array indexes point to the FULL BLOCK
-
-		// }
+      exit(5);
+		}
 
 
 

@@ -107,16 +107,10 @@ int main() {
   }
 
   headblock = BF_Block_GetData(block);
-  // ===
+
   // ht_array_global = malloc(GLOBAL_DEPTH * sizeof(int));
-  ht_array_global = malloc(4 * sizeof(int));
-  // ht_array_global[0] = 0;
-  // ht_array_global[1] = 1;
-  for (int i=0 ; i<2 ; i++) {
-    ht_array_global[i] = i+1;
-    ht_array_global[i+2] = i+1;
-  }
-  // ===
+  ht_array_global = malloc(8 * sizeof(int));
+
   ht_info.is_ht = true;
   // ht_info.global_depth = GLOBAL_DEPTH;
   // ht_info.global_depth = 1;                 // xekiname me 2 buckets (kai blocks: 0, 1 i guess) -> ara global_depth = 1
@@ -126,9 +120,38 @@ int main() {
   ht_info.ht_array_head = 0;                // block 0 is the head of the ht_array
   ht_info.ht_array_length = 1;              // there only 1 block needed to store ht_array (yet)
   // ht_info.ht_array_size = GLOBAL_DEPTH;     // 2 or GLOBAL_DEPTH pointers of ht_array have been allocated
-  ht_info.ht_array_size = 4;
+  ht_info.ht_array_size = 8;
   ht_info.num_blocks = 2;                  // total number of buckets/blocks in this ht file 
 
+  // ===
+	// int step = 2;
+  // int BlockId = 1;
+  // int i = 0;
+  // while (step <= ht_info.ht_array_size) {
+	// 	if (i < step) {
+	// 		ht_info.ht_array[i] = BlockId;
+	// 		i++;
+	// 	}
+	// 	else {
+	// 		step *= 2;
+	// 		BlockId++;
+	// 	}
+  // }
+
+	ht_info.ht_array[0] = 1;
+	ht_info.ht_array[1] = 1;
+	ht_info.ht_array[2] = 1;
+	ht_info.ht_array[3] = 1;
+	ht_info.ht_array[4] = 2;
+	ht_info.ht_array[5] = 2;
+	ht_info.ht_array[6] = 2;
+	ht_info.ht_array[7] = 2;
+
+	for(int j=0 ; j < ht_info.ht_array_size ; j++)
+		printf("ht_info.ht_array[%d] = %d\n", j, ht_info.ht_array[j]);
+	// exit(0);
+  // ===
+	
   memcpy(headblock, &ht_info, sizeof(HT_info));
   BF_Block_SetDirty(block);
   if (Check(BF_UnpinBlock(block)) < 0) {
@@ -146,6 +169,7 @@ int main() {
   ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
   ht_block_info.next_block = 0;
   ht_block_info.num_records = 0;
+  ht_block_info.indexes_pointed_by = 4;
   memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
   BF_Block_SetDirty(block);
   if (Check(BF_UnpinBlock(block)) < 0) {
@@ -166,6 +190,7 @@ int main() {
   ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
   ht_block_info.next_block = 0;
   ht_block_info.num_records = 0;
+  ht_block_info.indexes_pointed_by = 4;
   memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
   BF_Block_SetDirty(block);
   if (Check(BF_UnpinBlock(block)) < 0) {
@@ -178,8 +203,9 @@ int main() {
   srand(time(NULL));
   int r;
   // printf("Inserting %d Entries\n", MAX_RECORDS);
-  printf("Inserting 5 Entries\n");
+  printf("Inserting 32 Entries\n");
   // for (int id = 0; id < MAX_RECORDS; ++id) {
+  // for (int id = 0; id < 64; ++id) {
   for (int id = 0; id < 32; ++id) {
     // create a record
     record.id = id;

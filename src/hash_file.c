@@ -9,6 +9,7 @@
 
 #define INT_SIZE sizeof(int)
 #define OFFSET (2 * INT_SIZE)
+#define RECORD_SIZE sizeof(Record)
 
 #define CALL_BF(call)         \
   {                           \
@@ -19,28 +20,30 @@
       return HT_ERROR;        \
     }                         \
   }
-// Structure to represent an opened hash file
-OpenedHashFile *hash_file[MAX_OPEN_FILES];
 
-// Structure to represent the hash_table
-HashTable hash_table;
+OpenedHashFile *hash_file[MAX_OPEN_FILES]; // struct to represent an opened hash file
+HashTable hash_table;                      // struct to represent the hash_table
 
-// Function to check if the hash table is initialized
+/* Function to check if the hash table is initialized */
 int isHashTableInitialized(HashTable *hashTable)
 {
   return hashTable->isHashTableInitialized;
 }
 
-// Hash Function
+/*hash function*/
 int hash(int id, int blocks)
 {
   return id % blocks;
 }
+
+/*finds a dirty block and unpins it*/
 int dirtyUnpin(BF_Block *block)
 {
   BF_Block_SetDirty(block);
   CALL_BF(BF_UnpinBlock(block));
 }
+
+/*checks if a hash file is open*/
 int checkOpenHashFiles()
 {
   int i;
@@ -57,12 +60,7 @@ int checkOpenHashFiles()
   }
   return HT_OK;
 }
-void printCustomRecord(Record *record)
-{
-  printf("%d,\"%s\",\"%s\",\"%s\"\n",
-         record->id, record->name, record->surname, record->city);
-}
-
+/*Initializes the hash file*/
 HT_ErrorCode HT_Init()
 {
   CALL_BF(BF_Init(LRU));
@@ -74,78 +72,81 @@ HT_ErrorCode HT_Init()
 
 HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 {
-  // Create and open HT file.
-  int fd;
+  /*Create file and open it*/
+  int fileDesc;
   CALL_BF(BF_CreateFile(filename));
-  CALL_BF(BF_OpenFile(filename, &fd));
+  CALL_BF(BF_OpenFile(filename, &fileDesc));
 
-  // Create first block.
+  /*Allocate first block*/
   BF_Block *block;
-  char *data;
   BF_Block_Init(&block);
-  CALL_BF(BF_AllocateBlock(fd, block));
-  data = BF_Block_GetData(block);
+  CALL_BF(BF_AllocateBlock(fileDesc, block));
 
-  // Set bool to true to show that we have an ht file
+  /*Get Block data and save them*/
+  char *data;
+  data = BF_Block_GetData(block);
+  memcpy(data + 2 * sizeof(char), &depth, INT_SIZE);
+
+  /*Set bool to true to initialize the hash table*/
   hash_table.isHashTableInitialized = 1;
 
-  memcpy(data + 2, &depth, 4);
+  /*Unpin the first block*/
+  dirtyUnpin(block);
 
-  // Save changes to first block.
-  BF_Block_SetDirty(block);
-  CALL_BF(BF_UnpinBlock(block));
+  /*Find the blocks we need */
+  int intsInBlock = BF_BLOCK_SIZE / INT_SIZE;
+  int blocksForTheIndex = depth / BF_BLOCK_SIZE / INT_SIZE + 1;
 
-  // Calculate blocks needed for index.
-  int integersInABlock = BF_BLOCK_SIZE / INT_SIZE;
-  int blocksNeededForIndex = depth / integersInABlock + 1;
-
-  // Allocate blocks for index.
-  for (int i = 0; i < blocksNeededForIndex; i++)
+  /*Allocate index blocks */
+  for (int i = 0; i < blocksForTheIndex; i++)
   {
-    CALL_BF(BF_AllocateBlock(fd, block));
+    CALL_BF(BF_AllocateBlock(fileDesc, block));
     CALL_BF(BF_UnpinBlock(block));
   }
 
-  // Make changes and close HT file.
+  /*Closing the file*/
   BF_Block_Destroy(&block);
-  CALL_BF(BF_CloseFile(fd));
+  CALL_BF(BF_CloseFile(fileDesc));
   return HT_OK;
 }
 
 HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
 {
+  /*Check if there are other open files*/
   checkOpenHashFiles();
 
-  // Open file.
-  int fd;
-  CALL_BF(BF_OpenFile(fileName, &fd));
+  /*Opening the file*/
+  int fileDesc;
+  CALL_BF(BF_OpenFile(fileName, &fileDesc));
 
-  // Init block.
+  /*Block initialization*/
   BF_Block *block;
   BF_Block_Init(&block);
+  CALL_BF(BF_GetBlock(fileDesc, 0, block));
+
+  /*Get the data*/
   char *data;
-  CALL_BF(BF_GetBlock(fd, 0, block));
   data = BF_Block_GetData(block);
 
-  // Check if it's not HT file and close it.
+  /*Check if is hash table,if not unpin and close it*/
   if (hash_table.isHashTableInitialized != 1)
   {
-    CALL_BF(BF_UnpinBlock(block));
+    dirtyUnpin(block);
     BF_Block_Destroy(&block);
-    CALL_BF(BF_CloseFile(fd));
+    CALL_BF(BF_CloseFile(fileDesc));
     return HT_ERROR;
   }
 
-  // Get number of buckets:
+  /*get number of buckets*/
   int buckets;
-  memcpy(&buckets, data + 2, INT_SIZE);
+  memcpy(&buckets, data + 2 * sizeof(char), INT_SIZE);
 
-  // Allocate new OpenedHashFile struct
+  /*Initialize and allocate new struct*/
   OpenedHashFile *newOpenedHashFile = (OpenedHashFile *)calloc(1, sizeof(OpenedHashFile));
-  newOpenedHashFile->fileDesc = fd;
+  newOpenedHashFile->fileDesc = fileDesc;
   newOpenedHashFile->blocks = buckets;
 
-  // Find first NULL position in hashtable and put the new OpenedHashFile struct
+  /*Find first empty position and place the struct above*/
   int index = 0;
   while (index < MAX_OPEN_FILES)
   {
@@ -156,12 +157,8 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
     }
     index++;
   }
-
-  *indexDesc = index;
-
-  // Close block.
-  CALL_BF(BF_UnpinBlock(block));
-  BF_Block_Destroy(&block);
+  /*Closing the block*/
+  dirtyUnpin(block);
 
   return HT_OK;
 }
@@ -178,55 +175,57 @@ HT_ErrorCode HT_CloseFile(int indexDesc)
 
 HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
 {
-  // Get hashed value:
-  OpenedHashFile *indexForInsertion = hash_file[indexDesc];
-  int fileDesc = indexForInsertion->fileDesc;
-  int blocks = indexForInsertion->blocks;
+  /*Retrieve hash value*/
+  OpenedHashFile *fileToInsert = hash_file[indexDesc];
+  int fileDesc = fileToInsert->fileDesc;
+  int blocks = fileToInsert->blocks;
   int hashValue = hash(record.id, blocks);
 
-  // Find block in index:
-  int integersInABlock = BF_BLOCK_SIZE / INT_SIZE;
-  int blockToGoTo = hashValue / integersInABlock + 1;
-  int positionInBlock = hashValue % integersInABlock;
+  /*Find block */
+  int intsInBlock = BF_BLOCK_SIZE / INT_SIZE;
+  int blockTo = hashValue / intsInBlock + 1;
+  int blockPosition = hashValue % intsInBlock;
 
-  // Find bucket:
+  /*Find the bucket */
   int bucket;
   BF_Block *indexBlock, *recordBlock;
-  BF_Block_Init(&indexBlock);
-  BF_Block_Init(&recordBlock);
+  BF_Block_Init(&indexBlock), BF_Block_Init(&recordBlock);
+  CALL_BF(BF_GetBlock(fileDesc, blockTo, indexBlock));
+
+  /*Metadata */
   char *indexData;
-  CALL_BF(BF_GetBlock(fileDesc, blockToGoTo, indexBlock));
   indexData = BF_Block_GetData(indexBlock);
-  indexData += positionInBlock * INT_SIZE;
+  indexData += blockPosition * INT_SIZE;
   memcpy(&bucket, indexData, INT_SIZE);
 
-  // Bucket doesn't exist:
+  /*First case: bucket doesn't exist*/
   if (bucket == 0)
   {
-    int newBlockNum; // Get number of blocks
-    CALL_BF(BF_GetBlockCounter(fileDesc, &newBlockNum));
+    int newBlocksNeeded; // New number of blocks needed
+    CALL_BF(BF_GetBlockCounter(fileDesc, &newBlocksNeeded));
 
-    // Create bucket
+    /*Create the bucket*/
     CALL_BF(BF_AllocateBlock(fileDesc, recordBlock));
     char *recordData = BF_Block_GetData(recordBlock);
 
-    // Add new bucket number to index
-    memcpy(indexData, &newBlockNum, INT_SIZE);
-    BF_Block_SetDirty(indexBlock);
-    CALL_BF(BF_UnpinBlock(indexBlock));
+    /*Added new block number to index to insert*/
+    memcpy(indexData, &newBlocksNeeded, INT_SIZE);
 
-    // Add new record to new bucket
+    dirtyUnpin(indexBlock);
+
+    /*Add new record */
     int next = -1;
     int count = 1;
     memcpy(recordData, &next, INT_SIZE);
     memcpy(recordData + INT_SIZE, &count, INT_SIZE);
-    memcpy(recordData + OFFSET, &record, sizeof(Record));
-    BF_Block_SetDirty(recordBlock);
-    CALL_BF(BF_UnpinBlock(recordBlock));
+    memcpy(recordData + OFFSET, &record, RECORD_SIZE);
+
+    dirtyUnpin(recordBlock);
     BF_Block_Destroy(&recordBlock);
   }
 
-  else // bucket already exists
+  /*Second case: bucket exists*/
+  else
   {
     CALL_BF(BF_GetBlock(fileDesc, bucket, recordBlock));
     char *recordData = BF_Block_GetData(recordBlock);
@@ -242,18 +241,18 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
       memcpy(&next, recordData, INT_SIZE);
     }
 
-    int recordsInBlock = (BF_BLOCK_SIZE - OFFSET) / sizeof(Record);
+    int recordsInBlock = (BF_BLOCK_SIZE - OFFSET) / RECORD_SIZE;
     int count;
     memcpy(&count, recordData + INT_SIZE, INT_SIZE);
 
     if (count == recordsInBlock) // If block is full:
     {
       // Get number of blocks:
-      int newBlockNum;
-      CALL_BF(BF_GetBlockCounter(fileDesc, &newBlockNum));
+      int newBlocksNeeded;
+      CALL_BF(BF_GetBlockCounter(fileDesc, &newBlocksNeeded));
 
       // Add new block number to previous block:
-      memcpy(recordData, &newBlockNum, INT_SIZE);
+      memcpy(recordData, &newBlocksNeeded, INT_SIZE);
 
       // Save changes to previous block and get rid of it:
       BF_Block_SetDirty(recordBlock);
@@ -268,40 +267,40 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
       count = 1;
       memcpy(recordData, &next, INT_SIZE);
       memcpy(recordData + INT_SIZE, &count, INT_SIZE);
-      memcpy(recordData + OFFSET, &record, sizeof(Record));
+      memcpy(recordData + OFFSET, &record, RECORD_SIZE);
     }
     else // If block isn't full:
     {
-      memcpy(recordData + (OFFSET) + (count * sizeof(Record)), &record, sizeof(Record));
+      memcpy(recordData + (OFFSET) + (count * RECORD_SIZE), &record, RECORD_SIZE);
       count++;
       memcpy(recordData + INT_SIZE, &count, INT_SIZE);
     }
-
-    BF_Block_SetDirty(recordBlock);
-    CALL_BF(BF_UnpinBlock(recordBlock));
+    // BF_Block_SetDirty(recordBlock);
+    // CALL_BF(BF_UnpinBlock(recordBlock));
+    dirtyUnpin(recordBlock);
     BF_Block_Destroy(&recordBlock);
   }
-
-  CALL_BF(BF_UnpinBlock(indexBlock));
+  dirtyUnpin(indexBlock);
+  // CALL_BF(BF_UnpinBlock(indexBlock));
   BF_Block_Destroy(&indexBlock);
   return HT_OK;
 }
 
 HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
 {
-  OpenedHashFile *indexForInsertion = hash_file[indexDesc];
-  int fd = indexForInsertion->fileDesc;
-  int blocks = indexForInsertion->blocks;
+  OpenedHashFile *fileToInsert = hash_file[indexDesc];
+  int fileDesc = fileToInsert->fileDesc;
+  int blocks = fileToInsert->blocks;
 
   // Calculate blocks in index.
-  int integersInABlock = BF_BLOCK_SIZE / INT_SIZE;
-  int blocksInIndex = blocks / integersInABlock + 1;
+  int intsInBlock = BF_BLOCK_SIZE / INT_SIZE;
+  int blocksInIndex = blocks / intsInBlock + 1;
 
   BF_Block *recordBlock;
   BF_Block_Init(&recordBlock);
 
   int totalBlocks;
-  CALL_BF(BF_GetBlockCounter(fd, &totalBlocks));
+  CALL_BF(BF_GetBlockCounter(fileDesc, &totalBlocks));
 
   // If id is NULL, print every record in the hash file
   if (id == NULL)
@@ -309,15 +308,17 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
     Record *record;
     for (int currentBlock = 1 + blocksInIndex; currentBlock < totalBlocks; currentBlock++)
     {
-      CALL_BF(BF_GetBlock(fd, currentBlock, recordBlock));
+      CALL_BF(BF_GetBlock(fileDesc, currentBlock, recordBlock));
       char *blockData;
       blockData = BF_Block_GetData(recordBlock);
       int count;
       memcpy(&count, blockData + INT_SIZE, INT_SIZE);
       for (int i = 0; i < count; i++)
       {
-        record = (Record *)(blockData + OFFSET + i * sizeof(Record));
-        printCustomRecord(record);
+        record = (Record *)(blockData + OFFSET + i * RECORD_SIZE);
+        // printCustomRecord(record);
+        printf("ID: %d, name: %s, surname: %s, city: %s\n", record->id, record->name,
+               record->surname, record->city);
       }
       CALL_BF(BF_UnpinBlock(recordBlock));
     }
@@ -327,24 +328,24 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
   { // Otherwise find the record in the hash table using the same operations as in InsertEntry
     Record *record;
     int hashValue = hash(*id, blocks);
-    int blockToGoTo = hashValue / integersInABlock + 1;
-    int positionInBlock = hashValue % integersInABlock;
+    int blockTo = hashValue / intsInBlock + 1;
+    int blockPosition = hashValue % intsInBlock;
 
     // Find bucket:
     int bucket;
     BF_Block *indexBlock;
     BF_Block_Init(&indexBlock);
     char *indexData;
-    CALL_BF(BF_GetBlock(fd, blockToGoTo, indexBlock));
+    CALL_BF(BF_GetBlock(fileDesc, blockTo, indexBlock));
     indexData = BF_Block_GetData(indexBlock);
-    indexData += positionInBlock * INT_SIZE;
+    indexData += blockPosition * INT_SIZE;
     memcpy(&bucket, indexData, INT_SIZE);
 
     if (bucket == 0)
     {
       CALL_BF(BF_UnpinBlock(recordBlock));
       BF_Block_Destroy(&recordBlock);
-      printf("Bucket doesn't exist yet.\n");
+      printf("Bucket doesnt exist\n");
       return HT_OK;
     }
 
@@ -354,17 +355,19 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
 
     do
     { // Searching each block in the bucket for the record
-      CALL_BF(BF_GetBlock(fd, next, recordBlock));
+      CALL_BF(BF_GetBlock(fileDesc, next, recordBlock));
       char *recordData;
       recordData = BF_Block_GetData(recordBlock);
       memcpy(&next, recordData, INT_SIZE);
       memcpy(&count, recordData + INT_SIZE, INT_SIZE);
       for (int i = 0; i < count; i++)
       {
-        record = (Record *)(recordData + OFFSET + i * sizeof(Record));
+        record = (Record *)(recordData + OFFSET + i * RECORD_SIZE);
         if (record->id == *id)
         {
-          printCustomRecord(record);
+          // printCustomRecord(record);
+          printf("ID: %d, name: %s, surname: %s, city: %s\n", record->id, record->name,
+                 record->surname, record->city);
           printed++;
         }
       }
@@ -373,7 +376,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
 
     if (printed == 0)
     {
-      printf("Could not find ID %d sadly...\n", *id);
+      printf("Could not find ID %d \n", *id);
     }
     CALL_BF(BF_UnpinBlock(indexBlock));
     BF_Block_Destroy(&indexBlock);

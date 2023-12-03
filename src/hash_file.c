@@ -10,7 +10,8 @@
 #define INT_SIZE sizeof(int)
 #define OFFSET (2 * INT_SIZE)
 #define RECORD_SIZE sizeof(Record)
-#define CHAR_SIZE CHAR_SIZE
+#define CHAR_SIZE sizeof(char)
+
 
 #define CALL_BF(call)         \
   {                           \
@@ -285,7 +286,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
   BF_Block_Destroy(&indexBlock);
   return HT_OK;
 }
-
 HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
 {
   /*Same logic as insert*/

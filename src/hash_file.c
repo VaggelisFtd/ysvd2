@@ -215,9 +215,9 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
 
     /*Add new record */
     int next = -1;
-    int count = 1;
+    int counter = 1;
     memcpy(recordData, &next, INT_SIZE);
-    memcpy(recordData + INT_SIZE, &count, INT_SIZE);
+    memcpy(recordData + INT_SIZE, &counter, INT_SIZE);
     memcpy(recordData + OFFSET, &record, RECORD_SIZE);
 
     dirtyUnpin(recordBlock);
@@ -232,7 +232,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
     int next;
     memcpy(&next, recordData, INT_SIZE);
 
-    // Find last block in bucket:
+    /*Iterate to find the last block in bucket */
     while (next != -1)
     {
       CALL_BF(BF_UnpinBlock(recordBlock));
@@ -242,46 +242,43 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
     }
 
     int recordsInBlock = (BF_BLOCK_SIZE - OFFSET) / RECORD_SIZE;
-    int count;
-    memcpy(&count, recordData + INT_SIZE, INT_SIZE);
+    int counter;
+    memcpy(&counter, recordData + INT_SIZE, INT_SIZE);
 
-    if (count == recordsInBlock) // If block is full:
+    /*If block is full with records*/
+    if (counter == recordsInBlock)
     {
-      // Get number of blocks:
       int newBlocksNeeded;
       CALL_BF(BF_GetBlockCounter(fileDesc, &newBlocksNeeded));
 
-      // Add new block number to previous block:
+      /*Add new block number to previous */
       memcpy(recordData, &newBlocksNeeded, INT_SIZE);
 
-      // Save changes to previous block and get rid of it:
-      BF_Block_SetDirty(recordBlock);
-      CALL_BF(BF_UnpinBlock(recordBlock));
+      /*Save and unpin the block*/
+      dirtyUnpin(recordBlock);
 
-      // Create block:
+      /*Create the new block*/
       CALL_BF(BF_AllocateBlock(fileDesc, recordBlock));
       recordData = BF_Block_GetData(recordBlock);
 
-      // Add new record to new block:
+      /*Add new record to new block */
       next = -1;
-      count = 1;
+      counter = 1;
       memcpy(recordData, &next, INT_SIZE);
-      memcpy(recordData + INT_SIZE, &count, INT_SIZE);
+      memcpy(recordData + INT_SIZE, &counter, INT_SIZE);
       memcpy(recordData + OFFSET, &record, RECORD_SIZE);
     }
-    else // If block isn't full:
+    /*Case where block exists and its has capacity for the record*/
+    else
     {
-      memcpy(recordData + (OFFSET) + (count * RECORD_SIZE), &record, RECORD_SIZE);
-      count++;
-      memcpy(recordData + INT_SIZE, &count, INT_SIZE);
+      memcpy(recordData + (OFFSET) + (counter * RECORD_SIZE), &record, RECORD_SIZE);
+      counter++;
+      memcpy(recordData + INT_SIZE, &counter, INT_SIZE);
     }
-    // BF_Block_SetDirty(recordBlock);
-    // CALL_BF(BF_UnpinBlock(recordBlock));
     dirtyUnpin(recordBlock);
     BF_Block_Destroy(&recordBlock);
   }
   dirtyUnpin(indexBlock);
-  // CALL_BF(BF_UnpinBlock(indexBlock));
   BF_Block_Destroy(&indexBlock);
   return HT_OK;
 }
@@ -311,9 +308,9 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
       CALL_BF(BF_GetBlock(fileDesc, currentBlock, recordBlock));
       char *blockData;
       blockData = BF_Block_GetData(recordBlock);
-      int count;
-      memcpy(&count, blockData + INT_SIZE, INT_SIZE);
-      for (int i = 0; i < count; i++)
+      int counter;
+      memcpy(&counter, blockData + INT_SIZE, INT_SIZE);
+      for (int i = 0; i < counter; i++)
       {
         record = (Record *)(blockData + OFFSET + i * RECORD_SIZE);
         // printCustomRecord(record);
@@ -350,7 +347,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
     }
 
     int next = bucket;
-    int count;
+    int counter;
     int printed = 0;
 
     do
@@ -359,8 +356,8 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
       char *recordData;
       recordData = BF_Block_GetData(recordBlock);
       memcpy(&next, recordData, INT_SIZE);
-      memcpy(&count, recordData + INT_SIZE, INT_SIZE);
-      for (int i = 0; i < count; i++)
+      memcpy(&counter, recordData + INT_SIZE, INT_SIZE);
+      for (int i = 0; i < counter; i++)
       {
         record = (Record *)(recordData + OFFSET + i * RECORD_SIZE);
         if (record->id == *id)
@@ -390,8 +387,8 @@ HT_ErrorCode HashStatistics(char *filename)
 
 {
   // int indexDesc;
-  // theloume counter gia blocks kai gia records
-  // theloume counter min kai max records ANA BLOCK (bucket)
+  // theloume counterer gia blocks kai gia records
+  // theloume counterer min kai max records ANA BLOCK (bucket)
   //  ^^^^^^^^^^ sto struct --> fix initialize sthn create
 
   // HT_CloseFile(indexDesc);

@@ -10,6 +10,7 @@
 #define INT_SIZE sizeof(int)
 #define OFFSET (2 * INT_SIZE)
 #define RECORD_SIZE sizeof(Record)
+#define CHAR_SIZE CHAR_SIZE
 
 #define CALL_BF(call)         \
   {                           \
@@ -87,7 +88,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   /*Get Block data and save them*/
   char *data;
   data = BF_Block_GetData(block);
-  memcpy(data + 2 * sizeof(char), &depth, INT_SIZE);
+  memcpy(data + 2 * CHAR_SIZE, &depth, INT_SIZE);
 
   /*Set bool to true to initialize the hash table*/
   hash_table.isHashTableInitialized = 1;
@@ -141,7 +142,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
 
   /*get number of buckets*/
   int buckets;
-  memcpy(&buckets, data + 2 * sizeof(char), INT_SIZE);
+  memcpy(&buckets, data + 2 * CHAR_SIZE, INT_SIZE);
 
   /*Initialize and allocate new struct*/
   OpenedHashFile *newOpenedHashFile = (OpenedHashFile *)calloc(1, sizeof(OpenedHashFile));

@@ -143,10 +143,7 @@ int main()
     r = rand() % 7;
     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
 
-    printf("I work here 97\n");
-
     CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
-    printf("I work here 96\n");
   }
 
   // Print all entries to see the expanded hash table

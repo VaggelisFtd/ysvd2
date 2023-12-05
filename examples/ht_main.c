@@ -110,7 +110,7 @@ int main() {
   headblock = BF_Block_GetData(block);
 
   // ht_array_global = malloc(GLOBAL_DEPTH * sizeof(int));
-  ht_array_global = malloc(4 * sizeof(int));
+  ht_array_global = malloc(2 * sizeof(int));
 
   ht_info.is_ht = true;
   // ht_info.global_depth = GLOBAL_DEPTH;
@@ -121,7 +121,7 @@ int main() {
   ht_info.ht_array_head = 0;                // block 0 is the head of the ht_array
   ht_info.ht_array_length = 1;              // there only 1 block needed to store ht_array (yet)
   // ht_info.ht_array_size = GLOBAL_DEPTH;     // 2 or GLOBAL_DEPTH pointers of ht_array have been allocated
-  ht_info.ht_array_size = 4;
+  ht_info.ht_array_size = 2;
   ht_info.num_blocks = 2;                  // total number of buckets/blocks in this ht file 
 
   // ===
@@ -139,10 +139,10 @@ int main() {
 	// 	}
   // }
 
-	ht_info.ht_array[0] = 1;
+	ht_info.ht_array[0] = 0;
 	ht_info.ht_array[1] = 1;
-	ht_info.ht_array[2] = 2;
-	ht_info.ht_array[3] = 2;
+	// ht_info.ht_array[2] = 2;
+	// ht_info.ht_array[3] = 2;
 	// ht_info.ht_array[4] = 2;
 	// ht_info.ht_array[5] = 2;
 	// ht_info.ht_array[6] = 2;
@@ -170,7 +170,7 @@ int main() {
   ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
   ht_block_info.next_block = 0;
   ht_block_info.num_records = 0;
-  ht_block_info.indexes_pointed_by = 2;
+  ht_block_info.indexes_pointed_by = 1;
   memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
   BF_Block_SetDirty(block);
   if (Check(BF_UnpinBlock(block)) < 0) {
@@ -191,7 +191,7 @@ int main() {
   ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
   ht_block_info.next_block = 0;
   ht_block_info.num_records = 0;
-  ht_block_info.indexes_pointed_by = 2;
+  ht_block_info.indexes_pointed_by = 1;
   memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
   BF_Block_SetDirty(block);
   if (Check(BF_UnpinBlock(block)) < 0) {
@@ -207,7 +207,7 @@ int main() {
   printf("Inserting 32 Entries\n");
   // for (int id = 0; id < MAX_RECORDS; ++id) {
   // for (int id = 0; id < 64; ++id) {
-  for (int id = 0; id < 34; ++id) {
+  for (int id = 0; id < 20; ++id) {
     // create a record
     record.id = id;
     r = rand() % 12;

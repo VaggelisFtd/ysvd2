@@ -32,7 +32,6 @@ typedef struct {
 	bool is_ht;					// TRUE is ht file
     int fileDesc;              	// identifier number for opening file from block
 	int global_depth;			// 
-	int ht_id;					// block id of fisrt ht block
     int max_records;            // max number of records in each block
 	int max_ht;					// max number of records in each ht block
 } HT_info;

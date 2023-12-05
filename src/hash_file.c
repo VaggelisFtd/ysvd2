@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>	// for log2()
 #include <assert.h> // for debugging
 
 #include "bf.h"
 #include "../include/hash_file.h"
+
+#define BITS sizeof(int) * 8
 
 #define MAX_OPEN_FILES 20
 
@@ -15,6 +18,47 @@
 	BF_PrintError(code);    \
 	return HP_ERROR;        \
   }                         \
+}
+
+void intToBinary(HT_info ht_info, int* binary, int new_ht_array_size, int new_ht_array_size_bin) {
+    // // Temporary array to hold binary bits
+    // int binary[BITS];
+    
+    // // Loop through each bit
+    // for (int i = BITS - 1; i >= 0; i--) {
+    //     binary[i] = n & 1; // Get the least significant bit
+        
+    //     // Right shift to check the next bit
+    //     n = n >> 1;
+    // }
+    
+    // // Printing the binary representation
+    // printf("Binary representation: ");
+    // for (int i = 0; i < BITS; i++) {
+    //     printf("%d", binary[i]);
+    // }
+    // printf("\n");
+
+	// Temporary array to hold binary bits
+	// int binary[BITS];
+	
+	// Loop through each bit
+	for (int i = ht_info.global_depth ; i >= 0 ; i--) {
+		binary[i] = new_ht_array_size_bin & 1; // Get the least significant bit
+		
+		// Right shift to check the next bit
+		new_ht_array_size_bin = new_ht_array_size_bin >> 1;
+	}
+	
+	// Printing the binary representation
+	printf("ht_info.global_depth = %d\n", ht_info.global_depth);
+	printf("new_ht_array_size = %d\n", new_ht_array_size);
+	printf("Binary representation of new_ht_array_size: ");
+	for (int i = 0; i < ht_info.global_depth + 1 ; i++) {
+		printf(" %d", binary[i]);
+	}
+	printf("\n");
+
 }
 
 // Hash Function
@@ -124,6 +168,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
 	// BF_Init(LRU);
   
+	int step = 2; // used to determing how many and which pointers to redirect after ht_array doubling
+
 	char* head_data;
 	char* target_data;
 	HT_info ht_info;
@@ -393,12 +439,42 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 			// Firstly, update the global depth
 			ht_info.global_depth++;
       		
-			// Double ht_arrays size
+			// Double ht_array's size
 			int old_ht_array_size = ht_info.ht_array_size;
 			int new_ht_array_size = old_ht_array_size * 2;
+			int new_ht_array_size_bin = new_ht_array_size;
 			ht_info.ht_array = realloc(ht_info.ht_array, new_ht_array_size * sizeof(int));
 			assert(ht_info.ht_array != NULL);
+			
+			// // Temporary array to hold binary bits
+			// int binary[BITS];
+			int* binary = malloc(BITS * sizeof(int));
+			
+			// // Loop through each bit
+			// for (int i = ht_info.global_depth ; i >= 0 ; i--) {
+			// 	binary[i] = new_ht_array_size_bin & 1; // Get the least significant bit
+				
+			// 	// Right shift to check the next bit
+			// 	new_ht_array_size_bin = new_ht_array_size_bin >> 1;
+			// }
+			
+			// // Printing the binary representation
+			// printf("ht_info.global_depth = %d\n", ht_info.global_depth);
+			// printf("new_ht_array_size = %d\n", new_ht_array_size);
+			// printf("Binary representation of new_ht_array_size: ");
+			// for (int i = 0; i < ht_info.global_depth + 1 ; i++) {
+			// 	printf(" %d", binary[i]);
+			// }
+			// printf("\n");
+			intToBinary(ht_info, binary, new_ht_array_size, new_ht_array_size_bin);
 
+			printf("Binary representation of new_ht_array_size: ");
+			for (int i = 0; i < ht_info.global_depth + 1 ; i++) {
+				printf(" %d", binary[i]);
+			}
+			printf("\n");
+			
+			exit(0);
 
 			// Make sure it is stored correctly updating blocks containing the ht_array using ht_info (next_block ect.)
 			// SOOOS
@@ -567,4 +643,3 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 
 	return HT_OK;
 }
-

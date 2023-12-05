@@ -20,45 +20,35 @@
   }                         \
 }
 
-void intToBinary(HT_info ht_info, int* binary, int new_ht_array_size, int new_ht_array_size_bin) {
-    // // Temporary array to hold binary bits
-    // int binary[BITS];
-    
-    // // Loop through each bit
-    // for (int i = BITS - 1; i >= 0; i--) {
-    //     binary[i] = n & 1; // Get the least significant bit
-        
-    //     // Right shift to check the next bit
-    //     n = n >> 1;
-    // }
-    
-    // // Printing the binary representation
-    // printf("Binary representation: ");
-    // for (int i = 0; i < BITS; i++) {
-    //     printf("%d", binary[i]);
-    // }
-    // printf("\n");
-
-	// Temporary array to hold binary bits
-	// int binary[BITS];
-	
+void intToBinary(HT_info ht_info, int* binary, int var) {	
 	// Loop through each bit
+	int* result = malloc(BITS * sizeof(int));
+
 	for (int i = ht_info.global_depth ; i >= 0 ; i--) {
-		binary[i] = new_ht_array_size_bin & 1; // Get the least significant bit
+		result[i] = var & 1; // Get the least significant bit
 		
 		// Right shift to check the next bit
-		new_ht_array_size_bin = new_ht_array_size_bin >> 1;
+		var = var >> 1;
 	}
-	
-	// Printing the binary representation
-	printf("ht_info.global_depth = %d\n", ht_info.global_depth);
-	printf("new_ht_array_size = %d\n", new_ht_array_size);
-	printf("Binary representation of new_ht_array_size: ");
-	for (int i = 0; i < ht_info.global_depth + 1 ; i++) {
-		printf(" %d", binary[i]);
-	}
-	printf("\n");
 
+	// for (int i = 0; i < ht_info.global_depth+1 ; i++) {
+	// 	printf(" %d", result[i]);
+	// }
+	// printf("\n");
+
+	for (int i = 0; i < ht_info.global_depth ; i++) {
+        binary[i] = result[i];
+    }
+	
+	free(result);
+}
+
+int binaryToInt(int* binary, int length) {
+    int result = 0;
+    for (int i = 0; i < length; i++) {
+        result = result * 2 + binary[i];
+    }
+    return result;
 }
 
 // Hash Function
@@ -437,12 +427,13 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
 
 			// Firstly, update the global depth
-			ht_info.global_depth++;
+			// ht_info.global_depth++;
       		
 			// Double ht_array's size
 			int old_ht_array_size = ht_info.ht_array_size;
 			int new_ht_array_size = old_ht_array_size * 2;
-			int new_ht_array_size_bin = new_ht_array_size;
+			// int new_ht_array_size_bin = new_ht_array_size;
+			ht_info.ht_array_size = new_ht_array_size;
 			ht_info.ht_array = realloc(ht_info.ht_array, new_ht_array_size * sizeof(int));
 			assert(ht_info.ht_array != NULL);
 			
@@ -450,32 +441,103 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 			// int binary[BITS];
 			int* binary = malloc(BITS * sizeof(int));
 			
-			// // Loop through each bit
-			// for (int i = ht_info.global_depth ; i >= 0 ; i--) {
-			// 	binary[i] = new_ht_array_size_bin & 1; // Get the least significant bit
-				
-			// 	// Right shift to check the next bit
-			// 	new_ht_array_size_bin = new_ht_array_size_bin >> 1;
-			// }
-			
-			// // Printing the binary representation
-			// printf("ht_info.global_depth = %d\n", ht_info.global_depth);
+			// intToBinary(ht_info, binary, new_ht_array_size_bin);
+
 			// printf("new_ht_array_size = %d\n", new_ht_array_size);
 			// printf("Binary representation of new_ht_array_size: ");
 			// for (int i = 0; i < ht_info.global_depth + 1 ; i++) {
 			// 	printf(" %d", binary[i]);
 			// }
 			// printf("\n");
-			intToBinary(ht_info, binary, new_ht_array_size, new_ht_array_size_bin);
 
-			printf("Binary representation of new_ht_array_size: ");
-			for (int i = 0; i < ht_info.global_depth + 1 ; i++) {
-				printf(" %d", binary[i]);
+			// Create a temporary copy of the old hash table
+			int* old_ht_array = malloc(old_ht_array_size * sizeof(int));
+			for(int j=0 ; j < old_ht_array_size ; j++) {
+				// memcpy(old_ht_array, ht_info.ht_array, old_ht_array_size * sizeof(int));
+				old_ht_array[j] = ht_info.ht_array[j];
 			}
-			printf("\n");
 			
-			exit(0);
+			for(int j=0 ; j < old_ht_array_size ; j++)
+				printf("old ht array[%d] = %d\n", j, old_ht_array[j]);
 
+
+			// For each entry in the old hash table
+			for (int i = 0; i < new_ht_array_size; i++) {
+			// for (int i = 0; i < old_ht_array_size; i++) {
+				// Extract the first d bits of the index
+				// int old_index = i & ((1 << ht_info.global_depth) - 1);
+				// int old_index = (i >> (BITS - ht_info.global_depth)) & ((1 << ht_info.global_depth) - 1);
+				// int K = (i >> (BITS - ht_info.global_depth));
+
+
+
+				// intToBinary(ht_info, binary, ht_info.global_depth);
+				intToBinary(ht_info, binary, i);
+				for (int i = 0; i < ht_info.global_depth ; i++) {
+					printf(" %d", binary[i]);
+				}
+				printf("\n");
+
+				int old_index = binaryToInt(binary, ht_info.global_depth);
+				// printf("old_index ==== %d\n", old_index);
+
+				// Copy the bucket pointer from the old hash table to the new hash table
+				ht_info.ht_array[i] = old_ht_array[old_index];
+				printf("ht_info.ht_array[%d] = %d\n", i, ht_info.ht_array[i]);
+			}
+
+
+			// Free the temporary copy of the old hash table
+			free(old_ht_array);
+
+			// Finally, update the global depth
+			ht_info.global_depth++;
+
+			// exit(0);
+
+// SOOOOOOOOOOS - DEN FTIAXNW KAINOURIO BLOCK EDW, NA TO METAFERW APO EXW STO FOR, MESA STA 2 CASES APO PANW
+
+			// memcpy(new_data + BF_BLOCK_SIZE - sizeof(HT_block_info), &new_ht_block_info, sizeof(HT_block_info));
+			// BF_Block_SetDirty(new_block);
+			// BF_UnpinBlock(new_block);
+
+			// Store updated global depth and th_array
+			memcpy(head_data, &ht_info, sizeof(HT_info));
+			BF_Block_SetDirty(head_block);
+			BF_UnpinBlock(head_block);
+			
+			int i = 0;
+			// For each already existing record in FULL BLOCK (target_block) + Record_to_insert -> HT_InsertEntry(...) (hashing with 1 more bucket this time)
+      		for(int k = 0 ; k < ht_block_info.num_records * sizeof(Record) ; k = k + sizeof(Record)) {
+				// copy in our Record copy_array, the contents of the current record we are reading, in order to re-insert it
+        		memcpy(&copy_records[i++], target_data + k, sizeof(Record));
+			}
+			
+			int old_num_records = ht_block_info.num_records;
+			// Now that everything is set, we are ready to re-insert all the old records + the new one
+			i = 0;
+			printf("old record num: %d\n", old_num_records);
+
+			// For each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (hashing with 1 more bucket this time)
+			for(int k = 0 ; k < old_num_records * sizeof(Record) ; k = k + sizeof(Record)) {
+				// We use our record array with the copies
+				Record temp_record = copy_records[i++];
+				printf("old record copy being re-inserted is: id=%d, name=%s, surname=%s, city=%s\n", temp_record.id, temp_record.name, temp_record.surname, temp_record.city);
+				// if (!HT_InsertEntry(indexDesc, temp_record))
+				if (HT_InsertEntry(ht_info.fileDesc, temp_record))
+					return HT_ERROR;
+			}
+			
+			// Now once more for the new Record to insert as we said above
+			// if (!HT_InsertEntry(indexDesc, record))
+			if (HT_InsertEntry(ht_info.fileDesc, record))
+				return HT_ERROR;
+
+			// If we get here, all insertions (old + new) were executed properly, thus
+			return HT_OK;
+			// exit(0);
+			// =============================================================================================
+			
 			// Make sure it is stored correctly updating blocks containing the ht_array using ht_info (next_block ect.)
 			// SOOOS
 
@@ -506,14 +568,14 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 			BF_Block_SetDirty(head_block);
 			BF_UnpinBlock(head_block);
 			
-			int i = 0;
+			// int i = 0;
 			// For each already existing record in FULL BLOCK (target_block) + Record_to_insert -> HT_InsertEntry(...) (hashing with 1 more bucket this time)
       		for(int k = 0 ; k < ht_block_info.num_records * sizeof(Record) ; k = k + sizeof(Record)) {
 				// copy in our Record copy_array, the contents of the current record we are reading, in order to re-insert it
         		memcpy(&copy_records[i++], target_data + k, sizeof(Record));
 			}
 			
-			int old_num_records = ht_block_info.num_records;
+			// int old_num_records = ht_block_info.num_records;
 			// Now that everything is set, we are ready to re-insert all the old records + the new one
 			i = 0;
 			printf("old record num: %d\n", old_num_records);

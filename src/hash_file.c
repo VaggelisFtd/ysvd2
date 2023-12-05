@@ -391,15 +391,3 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
   BF_Block_Destroy(&recordBlock);
   return HT_OK;
 }
-
-HT_ErrorCode HashStatistics(char *filename)
-
-{
-  // int indexDesc;
-  // theloume counterer gia blocks kai gia records
-  // theloume counterer min kai max records ANA BLOCK (bucket)
-  //  ^^^^^^^^^^ sto struct --> fix initialize sthn create
-
-  // HT_CloseFile(indexDesc);
-  return HT_OK;
-}

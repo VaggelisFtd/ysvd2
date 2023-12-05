@@ -59,7 +59,7 @@ const char *cities[] = {
     "Hong Kong",
     "Munich",
     "Miami"};
-
+/*
 int main()
 {
   CALL_OR_DIE(HT_Init());
@@ -75,7 +75,7 @@ int main()
 
   // first file
   printf("Insert Entries in data.db\n");
-  for (int id = 0; id < MAX_RECORDS; id++)
+  for (int id = 0; id < 5; id++)
   {
     record.id = id;
     r = rand() % 5;
@@ -95,22 +95,85 @@ int main()
   // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
   // CALL_OR_DIE(HT_PrintAllEntries(indexDesc, NULL));
 
-  id = 0;
+  id = 1;
+  CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
   printf("Print Entry with id = %d\n", id);
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
 
+  id = 2;
+  CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
   printf("Print Entry with id = %d\n", id);
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
 
-  id = 10;
+  id = 3;
   printf("Print Entry with id = %d\n", id);
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
 
-  record.id = 15;
+  id = 4;
   CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
   printf("Print Entry with id = %d\n", id);
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
 
   CALL_OR_DIE(HT_CloseFile(indexDesc));
   BF_Close();
+}
+*/
+int main()
+{
+  CALL_OR_DIE(HT_Init());
+
+  int indexDesc;
+  // Open file1
+  CALL_OR_DIE(HT_CreateIndex(FILE_NAME, BUCKETS_NUM));
+  CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc));
+
+  Record record;
+  srand(12569874);
+  int r;
+
+  // Insert enough records to trigger expansion
+  printf("Inserting records to trigger expansion...\n");
+  for (int id = 0; id < 2 * BUCKETS_NUM; id++)
+  {
+    record.id = id;
+    r = rand() % 5;
+    memcpy(record.name, names[r], strlen(names[r]) + 1);
+    r = rand() % 6;
+    memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
+    r = rand() % 7;
+    memcpy(record.city, cities[r], strlen(cities[r]) + 1);
+
+    CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
+  }
+
+  // Print all entries to see the expanded hash table
+  printf("Print all entries after expansion:\n");
+  CALL_OR_DIE(HT_PrintAllEntries(indexDesc, NULL));
+
+  // Insert enough records to trigger bucket splitting
+  printf("\nInserting records to trigger bucket splitting...\n");
+  for (int id = 0; id < BUCKETS_NUM; id++)
+  {
+    record.id = id;
+    r = rand() % 5;
+    memcpy(record.name, names[r], strlen(names[r]) + 1);
+    r = rand() % 6;
+    memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
+    r = rand() % 7;
+    memcpy(record.city, cities[r], strlen(cities[r]) + 1);
+
+    CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
+  }
+  printf("--------------------------------------\n");
+  printf("--------------------------------------\n");
+  // Print all entries to see the bucket splitting
+  printf("Print all entries after bucket splitting:\n");
+  printf("--------------------------------------\n");
+  printf("--------------------------------------\n");
+  CALL_OR_DIE(HT_PrintAllEntries(indexDesc, NULL));
+
+  CALL_OR_DIE(HT_CloseFile(indexDesc));
+  BF_Close();
+
+  return 0;
 }

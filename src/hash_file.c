@@ -176,6 +176,9 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 
   int fd_temp;
 
+  printf("test 179\n");
+
+
   for(i=0; i<2; i++) //ftiaxnoume dyo block
   {
     CALL_BF(BF_AllocateBlock(fd, block));
@@ -188,6 +191,8 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
     memcpy(data, &ht_block_info, sizeof(HT_block_info));
 
     if(i==0) {fd_temp=fd;}
+
+    printf("test 195\n");
 
     DirtyUnpin(block); // pali segmentation
   }

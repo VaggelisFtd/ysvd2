@@ -115,7 +115,7 @@ int main() {
   ht_info.is_ht = true;
   // ht_info.global_depth = GLOBAL_DEPTH;
   // ht_info.global_depth = 1;                 // xekiname me 2 buckets (kai blocks: 0, 1 i guess) -> ara global_depth = 1
-  ht_info.global_depth = 2;                 // xekiname me 4 buckets (kai blocks: 0, 1, 2, 3) -> ara global_depth = 2
+  ht_info.global_depth = 1;                 // xekiname me 4 buckets (kai blocks: 0, 1, 2, 3) -> ara global_depth = 2
   // ht_info.ht_array = malloc(GLOBAL_DEPTH * sizeof(int)); // space for 2 blocks/buckets
   ht_info.ht_array = ht_array_global;       // space for 2 blocks/buckets
   ht_info.ht_array_head = 0;                // block 0 is the head of the ht_array
@@ -139,8 +139,9 @@ int main() {
 	// 	}
   // }
 
-	ht_info.ht_array[0] = 0;
-	ht_info.ht_array[1] = 1;
+	// ht_info.ht_array[0] = 0; // => KANENA NA MHN DEIXNEI STO 0
+	ht_info.ht_array[0] = 1;
+	ht_info.ht_array[1] = 2;
 	// ht_info.ht_array[2] = 2;
 	// ht_info.ht_array[3] = 2;
 	// ht_info.ht_array[4] = 2;
@@ -167,7 +168,8 @@ int main() {
   data = BF_Block_GetData(block);
   HT_block_info ht_block_info;
   ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
-  ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
+  // ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
+  ht_block_info.max_records = 2;
   ht_block_info.next_block = 0;
   ht_block_info.num_records = 0;
   ht_block_info.indexes_pointed_by = 1;
@@ -188,7 +190,8 @@ int main() {
   }
   data = BF_Block_GetData(block);
   ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
-  ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
+  // ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
+  ht_block_info.max_records = 2;
   ht_block_info.next_block = 0;
   ht_block_info.num_records = 0;
   ht_block_info.indexes_pointed_by = 1;
@@ -206,20 +209,48 @@ int main() {
   // printf("Inserting %d Entries\n", MAX_RECORDS);
   printf("Inserting 32 Entries\n");
   // for (int id = 0; id < MAX_RECORDS; ++id) {
-  // for (int id = 0; id < 64; ++id) {
-  for (int id = 0; id < 20; ++id) {
-    // create a record
-    record.id = id;
-    r = rand() % 12;
-    memcpy(record.name, names[r], strlen(names[r]) + 1);
-    r = rand() % 12;
-    memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
-    r = rand() % 10;
-    memcpy(record.city, cities[r], strlen(cities[r]) + 1);
+  // for (int id = 0; id < 68; ++id) {
+  // for (int id = 0; id < 33; ++id) {
+  //   // create a record
+  //   record.id = id;
+  //   r = rand() % 12;
+  //   memcpy(record.name, names[r], strlen(names[r]) + 1);
+  //   r = rand() % 12;
+  //   memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
+  //   r = rand() % 10;
+  //   memcpy(record.city, cities[r], strlen(cities[r]) + 1);
 
-    CALL_OR_DIE(HT_InsertEntry(ht_info.fileDesc, record));
-    // CALL_OR_DIE(HT_InsertEntry(indexDesc, randomRecord())); // cant define randomRecord() for some reason...
-  }
+  //   CALL_OR_DIE(HT_InsertEntry(ht_info.fileDesc, record));
+  //   // CALL_OR_DIE(HT_InsertEntry(indexDesc, randomRecord())); // cant define randomRecord() for some reason...
+  // }
+
+
+  record.id = 16;
+  memcpy(record.name, "Name16", 7);
+  memcpy(record.surname, "Surname16", 10);
+  memcpy(record.city, "City16", 7);
+  CALL_OR_DIE(HT_InsertEntry(ht_info.fileDesc, record));
+  record.id = 26;
+  memcpy(record.name, "Name26", 7);
+  memcpy(record.surname, "Surname26", 10);
+  memcpy(record.city, "City26", 7);
+  CALL_OR_DIE(HT_InsertEntry(ht_info.fileDesc, record));
+  record.id = 14;
+  memcpy(record.name, "Name14", 7);
+  memcpy(record.surname, "Surname14", 10);
+  memcpy(record.city, "City14", 7);
+  CALL_OR_DIE(HT_InsertEntry(ht_info.fileDesc, record));
+  record.id = 12;
+  memcpy(record.name, "Name12", 7);
+  memcpy(record.surname, "Surname12", 10);
+  memcpy(record.city, "City12", 7);
+  CALL_OR_DIE(HT_InsertEntry(ht_info.fileDesc, record));
+  record.id = 10;
+  memcpy(record.name, "Name10", 7);
+  memcpy(record.surname, "Surname10", 10);
+  memcpy(record.city, "City10", 7);
+  CALL_OR_DIE(HT_InsertEntry(ht_info.fileDesc, record));
+  // CALL_OR_DIE(HT_InsertEntry(indexDesc, randomRecord())); // cant define randomRecord() for some reason...
 
 
   // printf("RUN PrintAllEntries\n");

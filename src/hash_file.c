@@ -183,11 +183,13 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   }
 
   //print
-  // for(i=0; i<N/2; i++)
-  // {
+  for (i=0; i<N/2; i++) //misa index sto block 1 misa 2
+  {
+    hash_table[i] = &block;
+
     
-  // }
-  //print misa index sto block 1 misa 2
+  }
+  //print 
 
   BF_Block_Destroy(&block);
 

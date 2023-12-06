@@ -127,12 +127,17 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   ht_info.ht_array_head = -1;
   ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
   ht_info.ht_array_size = N;
-  ht_info.ht_array = malloc(ht_info.ht_array_size*sizeof(int));
-  ht_info.ht_array_length = 1;
-  ht_info.num_blocks = required_blocks+1;
+
+  ht_info.ht_array = (int *)malloc(ht_info.ht_array_size*sizeof(int));
+  if (ht_info.ht_array==NULL){
+    return -1;
+  }
   for(i=0; i<ht_info.ht_array_size; i++){
     ht_info.ht_array[i] = -1;
   }
+
+  ht_info.ht_array_length = 1;
+  ht_info.num_blocks = required_blocks+1;
   //ht_info.max_ht = (BF_BLOCK_SIZE - sizeof(int))/sizeof(int);   //! size of ht info?
 
   memcpy(block, &ht_info, sizeof(HT_info));

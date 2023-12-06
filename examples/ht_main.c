@@ -91,8 +91,8 @@ int main() {
   void *data;
 
   if (Check(BF_CreateFile(FILE_NAME)) < 0) {
-  printf("Error creating file: %s in HT_CreateFile\n", FILE_NAME);
-  return -1;
+    printf("Error creating file: %s in HT_CreateFile\n", FILE_NAME);
+    return -1;
   }
 
   if (Check(BF_OpenFile(FILE_NAME, &ht_info.fileDesc)) < 0) {
@@ -149,8 +149,16 @@ int main() {
 	ht_info.ht_array[6] = 2;
 	ht_info.ht_array[7] = 2;
 
+
 	for(int j=0 ; j < ht_info.ht_array_size ; j++)
 		printf("ht_info.ht_array[%d] = %d\n", j, ht_info.ht_array[j]);
+
+
+
+  // CALL_OR_DIE(HT_CreateIndex(FILE_NAME, 3));
+
+
+
 	// exit(0);
   // ===
 	

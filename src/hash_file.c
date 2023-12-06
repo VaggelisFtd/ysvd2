@@ -21,13 +21,30 @@
   }                         \
 }
 
-// int max_binary_digits(int max_number) {
-// 	if(max_number == 0) {
-// 		return 1;
-// 	} else {
-// 		return floor(log2(max_number)) + 1;
-// 	}
-// }
+int *hash_table[MAX_OPEN_FILES]; //hash table contains files and each file contains an ht_array (array of ids)
+
+int DirtyUnpin(BF_Block *block)
+{
+  BF_Block_SetDirty(block);
+  BF_UnpinBlock(block);
+}
+
+int checkOpenFiles()
+{
+  int i;
+
+  for (i = 0; i < MAX_OPEN_FILES; i++)
+  {
+    if (hash_table[i] == NULL)
+      break;
+  }
+  if (i == MAX_OPEN_FILES)
+  {
+    printf("Open files are at maximum - more files can't be opened");
+    return HT_ERROR;
+  }
+  return HT_OK;
+}
 
 void intToBinary(HT_info ht_info, int* binary, int var) {	
 	// Loop through each bit
@@ -61,26 +78,166 @@ int binaryToInt(int* binary, int length) {
 }
 
 // Hash Function
-int hash(int id, int buckets){
-	return (id * (id+3)) % buckets;
+int hash(int id, int ht_array_size){
+	return (id * (id+3)) % ht_array_size;
 }
 int hash2(int id, int ht_array_size){
 	return id % ht_array_size;
 }
 
 HT_ErrorCode HT_Init() {
-  //insert code here
-  return HT_OK;
+  	for (int i = 0; i < MAX_OPEN_FILES; i++)
+    	hash_table[i] = NULL;
+
+  	return HT_OK;
 }
 
+
 HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
-  //insert code here
-  return HT_OK;
+	HT_info ht_info;
+	HT_block_info ht_block_info;
+	BF_Block* block;
+	void* data;
+	int fd;
+	int N;
+	int required_blocks;
+	int i;
+
+	BF_CreateFile(filename);
+	BF_OpenFile(filename, &ht_info.fileDesc);
+
+	// META DATA BLOCK --> first
+
+	BF_Block_Init(&block);
+	BF_AllocateBlock(ht_info.fileDesc, block);
+
+	data = BF_Block_GetData(block);
+
+	ht_info.is_ht = true;
+	ht_info.global_depth = depth;
+
+	N = pow(2, ht_info.global_depth); // 2^depth --> number of entries
+
+	ht_info.ht_array_head = -1;
+	ht_info.ht_array_size = N;
+
+	ht_info.ht_array = (int *)malloc(ht_info.ht_array_size*sizeof(int));
+	if (ht_info.ht_array==NULL){
+		return -1;
+	}
+	for(i=0; i<ht_info.ht_array_size; i++){
+		ht_info.ht_array[i] = -1;
+	}
+
+	ht_info.ht_array_length = 1;
+	ht_info.num_blocks = required_blocks+1;
+	//ht_info.max_ht = (BF_BLOCK_SIZE - sizeof(int))/sizeof(int);   //! size of ht info?
+
+	memcpy(block, &ht_info, sizeof(HT_info));
+
+	// HASH TABLE BLOCK --> second
+
+	required_blocks = ceil(N / BF_BLOCK_SIZE); // number of blocks we need for hash table
+
+	//printf("required blocks for hash table: %d\n", required_blocks);
+
+	// for (i = 0; i < required_blocks; i++)
+	// {
+	//   BF_Block *next_block;
+	//   BF_Block_Init(&next_block);
+	//   CALL_BF(BF_AllocateBlock(fd, next_block));
+	//   if (i==0) // save hash table's first block id
+	//   {
+	//     CALL_BF(BF_GetBlockCounter(ht_info.fileDesc, &ht_info.ht_array_head)); // this gives 1
+	//     ht_info.ht_array_head--;  // but id is 0
+	//   }
+	//   data = BF_Block_GetData(next_block);
+	//   memcpy(data, &ht_info, sizeof(HT_info));
+
+	//   DirtyUnpin(next_block);
+
+	//   BF_Block_Destroy(&next_block);
+	// }
+
+	//last initializations in HT_info
+	//ht_info.ht_array_size = i;
+	//ht_info.ht_array_length = required_blocks;
+
+	//DirtyUnpin(block); //--> xreiazetai alla vgazei seg xwris to apo panw
+
+	printf("test 170\n");
+
+	int fd_temp;
+
+	for(i=0; i<2; i++) //ftiaxnoume dyo block
+	{
+		BF_AllocateBlock(fd, block);
+		data = BF_Block_GetData(block);
+		ht_block_info.num_records = 0;
+		ht_block_info.local_depth = 1;
+		ht_block_info.max_records = MAX_RECORDS; //!
+		ht_block_info.next_block = 0;
+		ht_block_info.indexes_pointed_by = 0;
+		memcpy(data, &ht_block_info, sizeof(HT_block_info));
+
+		if(i==0) {fd_temp=fd;}
+
+		DirtyUnpin(block); // pali segmentation
+	}
+
+	printf("test 190\n");
+	for (i=0; i<N/2; i++) //misa index sto block 1 misa 2
+	{
+		hash_table[i] = &fd_temp;
+	}
+	for (i=N/2; i<N; i++)
+	{
+		hash_table[i] = &fd;
+	}
+	//print 
+
+	BF_Block_Destroy(&block);
+
+	//CALL_BF(BF_CloseFile(ht_info.fileDesc)); den doulevei-->giati? afou kaloume open
+
+  	return HT_OK;
 }
 
 HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
-  //insert code here
-  return HT_OK;
+  	/* Open files are at maximum - we can't open more */
+    if (checkOpenFiles() == HT_ERROR)
+      return HT_ERROR;
+
+    HT_info *ht_info;
+    BF_Block *block;
+    void *data;
+
+    /*Open the file*/
+    BF_OpenFile(fileName, indexDesc);
+    BF_Block_Init(&block);
+    BF_GetBlock(*indexDesc, 0, block);
+
+    /* Find empty place and write the file's data */
+    for (int i = 0; i < MAX_OPEN_FILES; i++)
+    {
+      if (hash_table[i] == NULL)
+      {
+        //hash_table[i] = (openedIndex *)malloc(sizeof(openedIndex));
+        hash_table[i] = (int *)malloc(sizeof(int));
+        if (hash_table[i] == NULL) 
+        {
+          perror("malloc");
+          return -1;
+        }
+        data = BF_Block_GetData(block);
+        ht_info = data;
+        break;
+      }
+    }
+
+    BF_UnpinBlock(block);
+
+    return HT_OK;
 }
 
 HT_ErrorCode HT_CloseFile(int indexDesc) {
@@ -232,8 +389,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 			// Here we have: target_block_id and new_block_id
 			// We get new blocks id
 			if ((BF_GetBlockCounter(ht_info.fileDesc, &new_block_id)) < 0) {
-			printf("Error getting num of blocks in HT_InsertEntry\n");
-			return -1;
+				printf("Error getting num of blocks in HT_InsertEntry\n");
+				return -1;
 			}
 			new_block_id--; // we "subtract" block with id: 0, containing ht_info
 			printf(" new_block_id = %d \n", new_block_id);
@@ -358,13 +515,13 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 				Record temp_record = copy_records[i++];
 				printf("old record copy being re-inserted is: id=%d, name=%s, surname=%s, city=%s\n", temp_record.id, temp_record.name, temp_record.surname, temp_record.city);
 				// if (!HT_InsertEntry(indexDesc, temp_record))
-				if (HT_InsertEntry(ht_info.fileDesc, temp_record))
+				if (HT_InsertEntry(ht_info.fileDesc, temp_record) != HT_OK)
 					return HT_ERROR;
 			}
 			
 			// Now once more for the new Record to insert as we said above
 			// if (!HT_InsertEntry(indexDesc, record))
-			if (HT_InsertEntry(ht_info.fileDesc, record))
+			if (HT_InsertEntry(ht_info.fileDesc, record) != HT_OK)
 				return HT_ERROR;
 
 			// If we get here, all insertions (old + new) were executed properly, thus

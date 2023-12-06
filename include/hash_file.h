@@ -21,7 +21,7 @@ typedef struct {
 	int ht_array_length;  	// new: number of blocks needed to store ht_array - na dw an xreiazetai
 	int ht_array_head;		// new: id of first block used to store ht_array - na dw an xreiazetai
 	int ht_array_size;		// new: number of elements(representing hash values) allocated for ht_array
-	int num_blocks; // mallon prepei na uparxei, mhpws k 8elei na xekinaei me allo ari8mo buckets kapoio arxeio (ara dn ginetai me define gt 8a einai idio se ola)
+	int num_blocks; 	// mallon prepei na uparxei, mhpws k 8elei na xekinaei me allo ari8mo buckets kapoio arxeio (ara dn ginetai me define gt 8a einai idio se ola)
 } HT_info;
 
 typedef struct {
@@ -34,15 +34,10 @@ typedef struct {
 									// Sthn ousia dld to 8eloume apla gia na exoume to X apo to X/2 -> new block kai X%2 ->old block, pou 8a kanoume
 } HT_block_info;
 
-int hash(int id, int buckets);		// να τις βαλω σε αλλο αρχείο!!!
+int hash(int id, int buckets);
 int hash2(int id, int buckets);
 
-// typedef struct Bucket{
-	// int local_depth; // new - mallon prepei na einai edw???
-	// int record_count;
-	// int bucket_size;
-	// Record records[MAX_RECORDS]; 
-// } Bucket;
+
 
 /*
  * Η συνάρτηση HT_Init χρησιμοποιείται για την αρχικοποίηση κάποιον δομών που μπορεί να χρειαστείτε. 

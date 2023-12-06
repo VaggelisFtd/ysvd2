@@ -17,6 +17,8 @@ typedef struct {
 	bool is_ht;					// TRUE is ht file
     int fileDesc;              	// identifier number for opening file from block
 	int global_depth;
+	//int ht_id; //id of first ht block
+	int max_records; //
 	int* ht_array;				// hash table array - contains int-ids of blocks/buckets
 	int ht_array_length;  	// new: number of blocks needed to store ht_array - na dw an xreiazetai
 	int ht_array_head;		// new: id of first block used to store ht_array - na dw an xreiazetai

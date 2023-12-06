@@ -16,9 +16,13 @@
   BF_ErrorCode code = call; \
   if (code != BF_OK) {      \
 	BF_PrintError(code);    \
-	return HP_ERROR;        \
+	return HT_ERROR;        \
   }                         \
 }
+
+int *hash_table[MAX_OPEN_FILES]; 
+
+//HT_info *hash_table[MAX_OPEN_FILES]; // hash table for open files
 
 void intToBinary(HT_info ht_info, int* binary, int var) {	
 	// Loop through each bit
@@ -62,23 +66,179 @@ int hash2(int id, int buckets){
 	return id % buckets;
 }
 
-HT_ErrorCode HT_Init() {
-  //insert code here
+int DirtyUnpin(BF_Block *block)
+{
+  BF_Block_SetDirty(block);
+  CALL_BF(BF_UnpinBlock(block));
+}
+
+int checkOpenFiles()
+{
+  int i;
+
+  for (i = 0; i < MAX_OPEN_FILES; i++)
+  {
+    if (hash_table[i] == NULL)
+      break;
+  }
+  if (i == MAX_OPEN_FILES)
+  {
+    printf("Open files are at maximum - more files can't be opened");
+    return HT_ERROR;
+  }
   return HT_OK;
 }
 
-HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
-  //insert code here
+HT_ErrorCode HT_Init()
+{
+  for (int i = 0; i < MAX_OPEN_FILES; i++)
+    hash_table[i] = NULL;
+
   return HT_OK;
 }
 
-HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
-  //insert code here
+/*we don't check for max open files beacause we can create, as many as we want, but we can only have 20 open*/
+HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
+{
+  HT_info ht_info;
+  HT_block_info ht_block_info;
+  BF_Block* block;
+  void* data;
+  int fd;
+  int N;
+  int required_blocks;
+  int i;
+
+  CALL_BF(BF_CreateFile(filename));
+  CALL_BF(BF_OpenFile(filename, &ht_info.fileDesc));
+
+  // META DATA BLOCK --> first
+
+  BF_Block_Init(&block);
+  CALL_BF(BF_AllocateBlock(ht_info.fileDesc, block));
+
+  data = BF_Block_GetData(block);
+
+  ht_info.is_ht = true;
+  ht_info.global_depth = depth;
+
+  N = pow(2, ht_info.global_depth); // 2^depth --> number of entries
+  
+  ht_info.ht_array_head = -1;
+  ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
+  ht_info.ht_array_size = N;
+  ht_info.ht_array = malloc(ht_info.ht_array_size*sizeof(int));
+  ht_info.ht_array_length = 1;
+  ht_info.num_blocks = required_blocks+1;
+  for(i=0; i<ht_info.ht_array_size; i++){
+    ht_info.ht_array[i] = -1;
+  }
+  //ht_info.max_ht = (BF_BLOCK_SIZE - sizeof(int))/sizeof(int);   //! size of ht info?
+
+  memcpy(block, &ht_info, sizeof(HT_info));
+
+  // HASH TABLE BLOCK --> second
+
+  required_blocks = ceil(N / ht_info.max_records); // number of blocks we need for hash table
+
+  //printf("required blocks for hash table: %d\n", required_blocks);
+
+  // for (i = 0; i < required_blocks; i++)
+  // {
+  //   BF_Block *next_block;
+  //   BF_Block_Init(&next_block);
+  //   CALL_BF(BF_AllocateBlock(fd, next_block));
+  //   if (i==0) // save hash table's first block id
+  //   {
+  //     CALL_BF(BF_GetBlockCounter(ht_info.fileDesc, &ht_info.ht_array_head)); // this gives 1
+  //     ht_info.ht_array_head--;  // but id is 0
+  //   }
+  //   data = BF_Block_GetData(next_block);
+  //   memcpy(data, &ht_info, sizeof(HT_info));
+
+  //   DirtyUnpin(next_block);
+
+  //   BF_Block_Destroy(&next_block);
+  // }
+
+  //last initializations in HT_info
+  //ht_info.ht_array_size = i;
+  //ht_info.ht_array_length = required_blocks;
+
+
+  DirtyUnpin(block);
+
+  for(i=0; i<2; i++) 
+  {
+    CALL_BF(BF_AllocateBlock(fd, block));
+    data = BF_Block_GetData(block);
+    ht_block_info.num_records = 0;
+    ht_block_info.local_depth = 1;
+    ht_block_info.max_records = MAX_RECORDS;  //!
+    ht_block_info.next_block = 0;
+    ht_block_info.indexes_pointed_by = 0;
+    memcpy(data, &ht_block_info, sizeof(HT_block_info));
+
+    DirtyUnpin(block);
+  }
+
+  //print
+  // for(i=0; i<N/2; i++)
+  // {
+    
+  // }
+  //print misa index sto block 1 misa 2
+
+  BF_Block_Destroy(&block);
+
+  //CALL_BF(BF_CloseFile(ht_info.fileDesc)); den doulevei-->giati? afou kaloume open
+
   return HT_OK;
 }
 
-HT_ErrorCode HT_CloseFile(int indexDesc) {
-  //insert code here
+HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
+  {
+    /* Open files are at maximum - we can't open more */
+    if (checkOpenFiles() == HT_ERROR)
+      return HT_ERROR;
+
+    HT_info *ht_info;
+    BF_Block *block;
+    void *data;
+
+    /*Open the file*/
+    CALL_BF(BF_OpenFile(fileName, indexDesc));
+    BF_Block_Init(&block);
+    CALL_BF(BF_GetBlock(*indexDesc, 0, block));
+
+    /* Find empty place and write the file's data */
+    for (int i = 0; i < MAX_OPEN_FILES; i++)
+    {
+      if (hash_table[i] == NULL)
+      {
+        //hash_table[i] = (openedIndex *)malloc(sizeof(openedIndex));
+        hash_table[i] = (int *)malloc(sizeof(int));
+        if (hash_table[i] == NULL) 
+        {
+          perror("malloc");
+          return -1;
+        }
+        data = BF_Block_GetData(block);
+        ht_info = data;
+        break;
+      }
+    }
+
+    CALL_BF(BF_UnpinBlock(block));
+
+    return HT_OK;
+  }
+
+HT_ErrorCode HT_CloseFile(int indexDesc)
+{
+  CALL_BF(BF_CloseFile(indexDesc));
+  free(hash_table[indexDesc]);
+  hash_table[indexDesc] = NULL; 
   return HT_OK;
 }
 

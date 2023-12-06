@@ -84,7 +84,10 @@ int main() {
   CALL_OR_DIE(HT_Init());
 
   int indexDesc;
-  // CALL_OR_DIE(HT_CreateIndex(FILE_NAME, GLOBAL_DEPTH));
+  CALL_OR_DIE(HT_CreateIndex(FILE_NAME, GLOBAL_DEPTH));
+
+  return 0;
+  
   HT_info ht_info;
   BF_Block *block;
   void *headblock; // was named data

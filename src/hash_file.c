@@ -176,7 +176,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 
   int fd_temp;
 
-  for(i=0; i<2; i++) 
+  for(i=0; i<2; i++) //ftiaxnoume dyo block
   {
     CALL_BF(BF_AllocateBlock(fd, block));
     data = BF_Block_GetData(block);

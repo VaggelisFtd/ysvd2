@@ -123,7 +123,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   ht_info.global_depth = depth;
 
   N = pow(2, ht_info.global_depth); // 2^depth --> number of entries
-  
+
   ht_info.ht_array_head = -1;
   ht_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
   ht_info.ht_array_size = N;
@@ -165,8 +165,11 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
   //ht_info.ht_array_size = i;
   //ht_info.ht_array_length = required_blocks;
 
+  //DirtyUnpin(block); //--> xreiazetai alla vgazei seg xwris to apo panw
 
-  DirtyUnpin(block);
+  printf("test 170\n");
+
+  int fd_temp;
 
   for(i=0; i<2; i++) 
   {
@@ -174,22 +177,24 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
     data = BF_Block_GetData(block);
     ht_block_info.num_records = 0;
     ht_block_info.local_depth = 1;
-    ht_block_info.max_records = MAX_RECORDS;  //!
+    ht_block_info.max_records = MAX_RECORDS; //!
     ht_block_info.next_block = 0;
     ht_block_info.indexes_pointed_by = 0;
     memcpy(data, &ht_block_info, sizeof(HT_block_info));
 
-    DirtyUnpin(block);
+    if(i==0) {fd_temp=fd;}
+
+    DirtyUnpin(block); // pali segmentation
   }
 
-  //print
+  printf("test 190\n");
   for (i=0; i<N/2; i++) //misa index sto block 1 misa 2
   {
-    
+    hash_table[i] = &fd_temp;
   }
   for (i=N/2; i<N; i++)
   {
-    
+    hash_table[i] = &fd;
   }
   //print 
 

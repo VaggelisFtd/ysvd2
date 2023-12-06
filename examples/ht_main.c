@@ -80,14 +80,16 @@ int* ht_array_global;
 
 int main() {
   BF_Init(LRU);
+
+  printf("test main 84\n");
   
   CALL_OR_DIE(HT_Init());
 
   int indexDesc;
   CALL_OR_DIE(HT_CreateIndex(FILE_NAME, GLOBAL_DEPTH));
-
+  printf("test main 90\n");
   return 0;
-  
+
   HT_info ht_info;
   BF_Block *block;
   void *headblock; // was named data

@@ -168,8 +168,6 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
 
   DirtyUnpin(block);
 
-  BF_Block* block_temp; //temporary
-
   for(i=0; i<2; i++) 
   {
     CALL_BF(BF_AllocateBlock(fd, block));
@@ -181,19 +179,17 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
     ht_block_info.indexes_pointed_by = 0;
     memcpy(data, &ht_block_info, sizeof(HT_block_info));
 
-    if(i==0){block_temp=block;} //temporary
-
     DirtyUnpin(block);
   }
 
   //print
   for (i=0; i<N/2; i++) //misa index sto block 1 misa 2
   {
-    hash_table[i] = &block_temp;
+    
   }
   for (i=N/2; i<N; i++)
   {
-    hash_table[i] = &block;
+    
   }
   //print 
 

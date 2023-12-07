@@ -19,7 +19,7 @@ int Check(int call)
   }
 }
 
-#define MAX_RECORDS 400 // you can change it if you want
+#define MAX_RECORDS 40 // you can change it if you want
 #define GLOBAL_DEPTH 1 // you can change it if you want // prepei na bgei sthn telikh main
 #define FILE_NAME "data.db"
 

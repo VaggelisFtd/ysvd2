@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>	// for log2()
+#include <math.h>	// for pow()
 #include <assert.h> // for debugging
-#include <limits.h> // for debugging
+#include <limits.h>
 
 #include "bf.h"
 #include "../include/hash_file.h"
@@ -118,8 +118,6 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 		return HT_ERROR;
   	}
 
-	// printf("In file: %s, fd = %d\n", filename, fd);
-	
 	for (int i=0 ; i<MAX_OPEN_FILES ; i++) {
 		if (fd_array[i] == -1) {
 			fd_array[i] = fd;
@@ -168,7 +166,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 	}
 	newdata = BF_Block_GetData(newblock);
 	
-	ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
+	ht_block_info.local_depth = 1;
 	ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
 	ht_block_info.next_block = 0;
 	ht_block_info.num_records = 0;
@@ -188,7 +186,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 		return -1;
 	}
 	newdata = BF_Block_GetData(newblock);
-	ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
+	ht_block_info.local_depth = 1;
 	ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
 	ht_block_info.next_block = 0;
 	ht_block_info.num_records = 0;
@@ -228,8 +226,6 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
 		printf("Error opening file: %s in HT_CreateFile\n", fileName);
 		return HT_ERROR;
   	}
-
-	// printf("OPEN fd = %d\n", fd);
 
 	for (int i=0 ; i<MAX_OPEN_FILES ; i++) {
 		if (fd_array[i] == -1) {
@@ -312,7 +308,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 	
 	// Check if bucket has enough space for the Record
 	int target_block_id = ht_info.ht_array[bucket_to_insert];
-	// printf("\n Trying to insert record id: %d in target_block [%d] -> %d\n", record.id, bucket_to_insert, target_block_id);
 	// Pin target_block
 	if (BF_GetBlock(indexDesc, target_block_id, target_block) < 0) {
 		printf("Error getting target_block in HT_InsertEntry\n");
@@ -323,10 +318,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 	// copy its data to our local var
 	memcpy(&ht_block_info, target_data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
 	// Check if there is room to add the record
-	// printf(" ht_block_info.num_records = %d, ht_block_info.max_records %d\n", ht_block_info.num_records, ht_block_info.max_records);
 	if (ht_block_info.num_records < ht_block_info.max_records) {
 		
-		// printf(" writing record id: %d on block:%d\n", record.id, target_block_id);
 		// insert the record in the last position of records in the block
 		memcpy(target_data + sizeof(Record) * ht_block_info.num_records, &record, sizeof(Record));
 
@@ -342,8 +335,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 		BF_Block_SetDirty(target_block);
 		BF_UnpinBlock(target_block);
 
-		// target_data = NULL; // xreiazetai?
-		// BF_Block_Destroy(&head_block); // both make DOUBLE FREE DETECTED error
 		BF_Block_Destroy(&target_block);
 
 		return HT_OK;
@@ -362,19 +353,9 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
 		// Here we have: target_block_id, new_block_id
 
-		
-    	// paizei na mhn xreiazetai kan - afou exoume thn GetBlockCounter()
-		// printf(" ht_info.num_blocks = %d \n", ht_info.num_blocks);
-		// memcpy(data, &ht_info, sizeof(HT_info)); // ginetai mesa sto if + (na sumplhrwsw an ginetai allou wste na xerw
-		// BF_Block_SetDirty(head_block);			// oti den xreiazetai se ka8e kladi twn ifs)
-
 		// At this point ht_block_info contains target_block's info
 		// Check if more than 1 ht_array indexes point to the FULL BLOCK
-
-		// printf("ht_block_info.local_depth = %d\n", ht_block_info.local_depth);
-		// printf("ht_info.global_depth = %d\n", ht_info.global_depth);
 		if((ht_block_info.local_depth < ht_info.global_depth) || (ht_block_info.indexes_pointed_by > 1)) {
-		// if(ht_block_info.local_depth < ht_info.global_depth) {
 
 			// Till this line, target_block points to hashed target_block
 			// So, now we create a new block* so that we can track both old-target-block and new-inserted-block
@@ -401,15 +382,12 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 				return -1;
 			}
 			new_block_id--; // we "subtract" block with id: 0, containing ht_info
-			// printf(" new_block_id = %d \n", new_block_id);
 			
 			new_ht_block_info.num_records = 0;
 			new_ht_block_info.local_depth = ht_block_info.local_depth;
-			// new_ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
-			new_ht_block_info.max_records = 8;
+			new_ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
 			new_ht_block_info.next_block = 0;
 			new_ht_block_info.indexes_pointed_by = 0; // will be updated/increase later (otan kanw ++)
-			// new_ht_block_info.indexes_pointed_by = ht_block_info.indexes_pointed_by; // auto mporei na ginei updated later an kanw ++ h 8a einai la8os???
 
 			new_data = BF_Block_GetData(new_block);
 
@@ -428,27 +406,17 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 				// For each index pointing to full target block
 				if (ht_info.ht_array[i] == target_block_id) {
 					// In order to equally distribute the indexes pointing to full block and the new block
-					// printf("count = %d\n", count);
-					// printf("old_num_indexes/2 = %d\n", old_num_indexes/2);
-					if (old_num_indexes == 1) {
-						// pass // na allaxw to condition se != k na bgalw to else
-					}
-					else {
+					if (old_num_indexes != 1) {
 						if (count >= old_num_indexes/2) {
 							ht_info.ht_array[i] = new_block_id;
 							new_ht_block_info.indexes_pointed_by++;
 							ht_block_info.indexes_pointed_by--;
 						}
-					}
+					} // if old_num_indexes == 1, we ust pass
           			count++;
 				}
 				i++;
 			} while (i < ht_info.ht_array_size); // minus the above target re-routed one
-			// printf("HT ARRAY AFTER\n");
-			// printf("ht_info.ht_array_size = %d\n", ht_info.ht_array_size);
-			// printf("\n");
-			// for(int j=0 ; j < ht_info.ht_array_size ; j++)
-			// 	printf("ht_info.ht_array[%d] = %d\n", j, ht_info.ht_array[j]);
 
 			// Re-write new_ht_block_info to new block (changes indexes_pointed_by from inside while)
 			memcpy(new_data + BF_BLOCK_SIZE - sizeof(HT_block_info), &new_ht_block_info, sizeof(HT_block_info));
@@ -470,24 +438,18 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         		memcpy(&copy_records[i++], target_data + k, sizeof(Record));
 			}
 
-			// !Important - this move marks total records of FULL_BLOCK as 0, making it appear as EMPTY while it is indeed STILL FULL
+			// !Important - this move marks total records of FULL_BLOCK as 0, making it APPEAR as EMPTY while it is indeed STILL FULL
 			int old_num_records = ht_block_info.num_records;
 			ht_block_info.num_records = 0;
 			// !Important - we do that so we can re-insert with the new hash_func + buckets the old records and the new one
-			// by overwriting this full block, like it was empty
-			// we trust that we wont read old remaining records by using ht_block_info.num_records as seilling! ( new_recs < olds_recs )
+			// by overwriting this full block, as if it was empty
+			// we trust that we wont read old remaining records by using ht_block_info.num_records as ceiling! ( new_recs < olds_recs )
 			memcpy(target_data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
 			BF_Block_SetDirty(target_block);
 
 			// Finally store all changes
 			BF_UnpinBlock(new_block);
 			BF_UnpinBlock(target_block);
-
-
-
-
-
-
 
 			// Now that everything is set, we are ready to re-insert all the old records + the new one
 			i = 0;
@@ -496,23 +458,17 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 			for(int k = 0 ; k < old_num_records * sizeof(Record) ; k = k + sizeof(Record)) {
 				// We use our record array with the copies
 				Record temp_record = copy_records[i++];
-				// printf("old record copy being re-inserted is: id=%d, name=%s, surname=%s, city=%s\n", temp_record.id, temp_record.name, temp_record.surname, temp_record.city);
-				// if (!HT_InsertEntry(indexDesc, temp_record))
 				if (HT_InsertEntry(ht_info.fileDesc, temp_record) != HT_OK)
 					return HT_ERROR;
 			}
 			
 			// Now once more for the new Record to insert as we said above
-			// if (!HT_InsertEntry(indexDesc, record))
 			if (HT_InsertEntry(ht_info.fileDesc, record) != HT_OK)
 				return HT_ERROR;
 
 			// If we get here, all insertions (old + new) were executed properly, thus
       		BF_Block_Destroy(&new_block);
 			return HT_OK;
-
-			// NA DW TI 8A KANW ME TA IDS TWN BLOCKS - kinda solved me .num_records = 0;
-
 		}
 		else {
 			// At this point ht_block_info contains target_block's info
@@ -527,26 +483,23 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 			assert(ht_info.ht_array != NULL);
 			
 			// // Temporary array to hold binary bits
-			// int binary[BITS];
 			int* binary = malloc(BITS * sizeof(int));
 
 			// Create a temporary copy of the old hash table
 			int* old_ht_array = malloc(old_ht_array_size * sizeof(int));
 			for(int j=0 ; j < old_ht_array_size ; j++) {
-				// memcpy(old_ht_array, ht_info.ht_array, old_ht_array_size * sizeof(int));
 				old_ht_array[j] = ht_info.ht_array[j];
 			}
 			
 			char* curr_data;
 			BF_Block* curr_block;
 			BF_Block_Init(&curr_block);
-			// int curr_block_id;
 
 			HT_block_info curr_ht_block_info;
 
 			// For each entry in the old hash table
 			// Extract the first d bits of the index
-			for (int i = 0; i < new_ht_array_size; i++) { // or old_ht_array_size
+			for (int i = 0; i < new_ht_array_size; i++) {
 				
 				// Firstly, reset indexesPointedBy (so that we recalculate them later)
 				for (int j=0 ; j < old_ht_array_size ; j++) {
@@ -565,7 +518,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
 				// Copy the bucket pointer from the old hash table to the new hash table
 				ht_info.ht_array[i] = old_ht_array[bucket_to_insert];
-				// printf("ht_info.ht_array[%d] = %d\n", i, ht_info.ht_array[i]);
 
 				BF_GetBlock(ht_info.fileDesc, ht_info.ht_array[i], curr_block);
 				curr_data = BF_Block_GetData(curr_block);
@@ -577,7 +529,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 			}
 			
 			BF_Block_Destroy(&curr_block);
-
 
 			// Free the temporary copy of the old hash table
 			free(old_ht_array);
@@ -591,7 +542,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 			BF_UnpinBlock(head_block);
 			
 			// Now once more for the new Record to insert as we said above
-			// if (!HT_InsertEntry(indexDesc, record))
 			if (HT_InsertEntry(ht_info.fileDesc, record))
 				return HT_ERROR;
 
@@ -609,7 +559,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
 HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 
-	// void* data;
 	char* data;
 	BF_Block* block;
 	BF_Block_Init(&block);
@@ -619,7 +568,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 
 	if ((BF_GetBlock(indexDesc, 0, block)) < 0) {
 		printf("Error getting block in HT_InsertEntry\n");
-		return -1;
+		return HT_ERROR;
 	}
 
 	// get pointer to block's 0 data
@@ -631,39 +580,31 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 	int total_blocks;
 	if ((BF_GetBlockCounter(ht_info.fileDesc, &total_blocks)) < 0) {
 		printf("Error getting num of blocks in HT_InsertEntry\n");
-		return -1;
+		return HT_ERROR;
 	}
 	printf("TOTAL BLOCKS: %d\n", total_blocks);
 
 	// Unpin block 0 since we dont need it anymore
 	if ((BF_UnpinBlock(block)) < 0) {
 		printf("Error unpinning block in HT_InsertEntry\n");
-		return -1;
+		return HT_ERROR;
 	}
 
 	// check if it's the one we are looking for
 	if (id != NULL) {
 		int found = 0;
-		// printf("ID TO FIND = %d\n", *id);
 
 		// Hash id to find the bucket where the record is supposed to be
 		int bucket_to_insert = hash2(*id, ht_info.ht_array_size);
 		int* binary = malloc(BITS * sizeof(int));
-		// intToBinary(ht_info, binary, bucket_to_insert);
 		intToBinary(ht_info, binary, *id);
-		// printf("\nbucket to insert %d ==HASH STATISTICS== ", *id);
-		// for (int i = 0; i < ht_info.global_depth ; i++) {
-		// 	printf(" %d", binary[i]);
-		// }
-		// printf("\n");
 
 		bucket_to_insert = binaryToInt(binary, ht_info.global_depth);
-		// printf("bucket_to_insert ==HASH STATISTICS== %d\n", bucket_to_insert);
 		free(binary);
 
 		// Bring this block to memory
 		if ((BF_GetBlock(ht_info.fileDesc, ht_info.ht_array[bucket_to_insert], block)) < 0) {
-		return -1;
+		return HT_ERROR;
 		}
 
 		// get pointer to this block's data
@@ -710,7 +651,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 				// Write babck on disk the block we just read
 				if ((BF_UnpinBlock(block)) < 0) {
 					printf("Error unpinning block in HT_GetAllEntries\n");
-					return -1;
+					return HT_ERROR;
 				}
 			}
 		}

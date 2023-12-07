@@ -77,7 +77,9 @@ const char* cities[] = {
   }
 
 
-int* ht_array_global;
+
+int** ht_array_global;
+int* fd_array;
 
 int main() {
   BF_Init(LRU);
@@ -86,131 +88,181 @@ int main() {
 
   int indexDesc;
   // CALL_OR_DIE(HT_CreateIndex(FILE_NAME, GLOBAL_DEPTH));
+  
   HT_info ht_info;
+  HT_block_info ht_block_info;
+
   BF_Block *block;
-  void *headblock; // was named data
-  void *data;
-
-  if (Check(BF_CreateFile(FILE_NAME)) < 0) {
-    printf("Error creating file: %s in HT_CreateFile\n", FILE_NAME);
-    return -1;
-  }
-
-  if (Check(BF_OpenFile(FILE_NAME, &ht_info.fileDesc)) < 0) {
-    printf("Error opening file: %s in HT_CreateFile\n", FILE_NAME);
-    return -1;
-  }
-
   BF_Block_Init(&block);
+  char *data;
 
-  if (Check(BF_AllocateBlock(ht_info.fileDesc, block)) < 0) {
-    printf("Error allocating block in HT_CreateFile\n");
-    return -1;
-  }
-
-  headblock = BF_Block_GetData(block);
-
-  // ht_array_global = malloc(GLOBAL_DEPTH * sizeof(int));
-  ht_array_global = malloc(2 * sizeof(int));
-
-  ht_info.is_ht = true;
-  // ht_info.global_depth = GLOBAL_DEPTH;
-  // ht_info.global_depth = 1;                 // xekiname me 2 buckets (kai blocks: 0, 1 i guess) -> ara global_depth = 1
-  ht_info.global_depth = 1;                 // xekiname me 4 buckets (kai blocks: 0, 1, 2, 3) -> ara global_depth = 2
-  // ht_info.ht_array = malloc(GLOBAL_DEPTH * sizeof(int)); // space for 2 blocks/buckets
-  ht_info.ht_array = ht_array_global;       // space for 2 blocks/buckets
-  ht_info.ht_array_head = 0;                // block 0 is the head of the ht_array
-  ht_info.ht_array_length = 1;              // there only 1 block needed to store ht_array (yet)
-  // ht_info.ht_array_size = GLOBAL_DEPTH;     // 2 or GLOBAL_DEPTH pointers of ht_array have been allocated
-  ht_info.ht_array_size = 2;
-  ht_info.num_blocks = 2;                  // total number of buckets/blocks in this ht file 
-
-  // ===
-	// int step = 2;
-  // int BlockId = 1;
-  // int i = 0;
-  // while (step <= ht_info.ht_array_size) {
-	// 	if (i < step) {
-	// 		ht_info.ht_array[i] = BlockId;
-	// 		i++;
-	// 	}
-	// 	else {
-	// 		step *= 2;
-	// 		BlockId++;
-	// 	}
+  // if (Check(BF_CreateFile(FILE_NAME)) < 0) {
+  //   printf("Error creating file: %s in HT_CreateFile\n", FILE_NAME);
+  //   return -1;
   // }
 
-	// ht_info.ht_array[0] = 0; // => KANENA NA MHN DEIXNEI STO 0
-	ht_info.ht_array[0] = 1;
-	ht_info.ht_array[1] = 2;
-	// ht_info.ht_array[2] = 1;
-	// ht_info.ht_array[3] = 1;
-	// ht_info.ht_array[4] = 2;
-	// ht_info.ht_array[5] = 2;
-	// ht_info.ht_array[6] = 2;
-	// ht_info.ht_array[7] = 2;
+  // if (Check(BF_OpenFile(FILE_NAME, &ht_info.fileDesc)) < 0) {
+  //   printf("Error opening file: %s in HT_CreateFile\n", FILE_NAME);
+  //   return -1;
+  // }
 
 
-	for(int j=0 ; j < ht_info.ht_array_size ; j++)
-		printf("ht_info.ht_array[%d] = %d\n", j, ht_info.ht_array[j]);
+  // if (Check(BF_AllocateBlock(ht_info.fileDesc, block)) < 0) {
+  //   printf("Error allocating block in HT_CreateFile\n");
+  //   return -1;
+  // }
+
+  // headblock = BF_Block_GetData(block);
+
+  // // ht_array_global = malloc(GLOBAL_DEPTH * sizeof(int));
+  // ht_array_global = malloc(2 * sizeof(int));
+
+  // ht_info.is_ht = true;
+  // // ht_info.global_depth = GLOBAL_DEPTH;
+  // // ht_info.global_depth = 1;                 // xekiname me 2 buckets (kai blocks: 0, 1 i guess) -> ara global_depth = 1
+  // ht_info.global_depth = 1;                 // xekiname me 4 buckets (kai blocks: 0, 1, 2, 3) -> ara global_depth = 2
+  // // ht_info.ht_array = malloc(GLOBAL_DEPTH * sizeof(int)); // space for 2 blocks/buckets
+  // ht_info.ht_array = ht_array_global;       // space for 2 blocks/buckets
+  // ht_info.ht_array_head = 0;                // block 0 is the head of the ht_array
+  // ht_info.ht_array_length = 1;              // there only 1 block needed to store ht_array (yet)
+  // // ht_info.ht_array_size = GLOBAL_DEPTH;     // 2 or GLOBAL_DEPTH pointers of ht_array have been allocated
+  // ht_info.ht_array_size = 2;
+  // ht_info.num_blocks = 2;                  // total number of buckets/blocks in this ht file 
+
+  // // ===
+	// // int step = 2;
+  // // int BlockId = 1;
+  // // int i = 0;
+  // // while (step <= ht_info.ht_array_size) {
+	// // 	if (i < step) {
+	// // 		ht_info.ht_array[i] = BlockId;
+	// // 		i++;
+	// // 	}
+	// // 	else {
+	// // 		step *= 2;
+	// // 		BlockId++;
+	// // 	}
+  // // }
+
+	// // ht_info.ht_array[0] = 0; // => KANENA NA MHN DEIXNEI STO 0
+	// ht_info.ht_array[0] = 1;
+	// ht_info.ht_array[1] = 2;
+	// // ht_info.ht_array[2] = 1;
+	// // ht_info.ht_array[3] = 1;
+	// // ht_info.ht_array[4] = 2;
+	// // ht_info.ht_array[5] = 2;
+	// // ht_info.ht_array[6] = 2;
+	// // ht_info.ht_array[7] = 2;
+
+
+	// for(int j=0 ; j < ht_info.ht_array_size ; j++)
+	// 	printf("ht_info.ht_array[%d] = %d\n", j, ht_info.ht_array[j]);
 
 
 
-  // CALL_OR_DIE(HT_CreateIndex(FILE_NAME, 3));
+  // // CALL_OR_DIE(HT_CreateIndex(FILE_NAME, 3));
 
 
 
-	// exit(0);
-  // ===
+	// // exit(0);
+  // // ===
 	
-  memcpy(headblock, &ht_info, sizeof(HT_info));
-  BF_Block_SetDirty(block);
-  if (Check(BF_UnpinBlock(block)) < 0) {
-    printf("Error allocating block in HT_CreateFile\n");
-    return -1;
+  // memcpy(headblock, &ht_info, sizeof(HT_info));
+  // BF_Block_SetDirty(block);
+  // if (Check(BF_UnpinBlock(block)) < 0) {
+  //   printf("Error allocating block in HT_CreateFile\n");
+  //   return -1;
+  // }
+
+  // if (Check(BF_AllocateBlock(ht_info.fileDesc, block)) < 0) {   // allocate 1st bucket/block
+  //   printf("Error allocating block in HT_CreateFile\n");
+  //   return -1;
+  // }
+  // data = BF_Block_GetData(block);
+  // HT_block_info ht_block_info;
+  // ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
+  // // ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
+  // ht_block_info.max_records = 8;
+  // ht_block_info.next_block = 0;
+  // ht_block_info.num_records = 0;
+  // ht_block_info.indexes_pointed_by = 1;
+  // memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
+  // BF_Block_SetDirty(block);
+  // if (Check(BF_UnpinBlock(block)) < 0) {
+  //   printf("Error allocating block in HT_CreateFile\n");
+  //   return -1;
+  // }
+  
+  // BF_GetBlock(ht_info.fileDesc, 1, block);
+  // data = BF_Block_GetData(block);
+  // memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
+
+  // if (Check(BF_AllocateBlock(ht_info.fileDesc, block)) < 0) {   // allocate 2nd bucket/block
+  //   printf("Error allocating block in HT_CreateFile\n");
+  //   return -1;
+  // }
+  // data = BF_Block_GetData(block);
+  // ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
+  // // ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
+  // ht_block_info.max_records = 8;
+  // ht_block_info.next_block = 0;
+  // ht_block_info.num_records = 0;
+  // ht_block_info.indexes_pointed_by = 1;
+  // memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
+  // BF_Block_SetDirty(block);
+  // if (Check(BF_UnpinBlock(block)) < 0) {
+  //   printf("Error allocating block in HT_CreateFile\n");
+  //   return -1;
+  // }
+
+// =====================================================================================
+  fd_array = malloc(MAX_OPEN_FILES * sizeof(int));
+	for (int i=0 ; i<MAX_OPEN_FILES ; i++)
+		fd_array[i] = -1;
+
+  ht_array_global = malloc(MAX_OPEN_FILES * sizeof(int*));
+
+  CALL_OR_DIE(HT_CreateIndex(FILE_NAME, 1));
+
+  int curr_fd;
+  BF_OpenFile(FILE_NAME, &curr_fd);
+  BF_GetBlock(curr_fd, 0, block);
+  data = BF_Block_GetData(block);
+  memcpy(&ht_info, data, sizeof(HT_info));
+  // printf("ht_info.fileDesc = %d\n", ht_info.fileDesc);
+  // printf("ht_info.ht_array_size = %d\n", ht_info.ht_array_size);
+  // printf("ht_info.num_blocks = %d\n", ht_info.num_blocks);
+
+  for (int i=0 ; i<ht_info.ht_array_size ; i++) {
+    printf("ht_info.ht_array[%d] = %d\n", i, ht_info.ht_array[i]);
   }
 
-  if (Check(BF_AllocateBlock(ht_info.fileDesc, block)) < 0) {   // allocate 1st bucket/block
-    printf("Error allocating block in HT_CreateFile\n");
-    return -1;
-  }
-  data = BF_Block_GetData(block);
-  HT_block_info ht_block_info;
-  ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
-  // ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
-  ht_block_info.max_records = 8;
-  ht_block_info.next_block = 0;
-  ht_block_info.num_records = 0;
-  ht_block_info.indexes_pointed_by = 1;
-  memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
-  BF_Block_SetDirty(block);
-  if (Check(BF_UnpinBlock(block)) < 0) {
-    printf("Error allocating block in HT_CreateFile\n");
-    return -1;
-  }
-  
-  BF_GetBlock(ht_info.fileDesc, 1, block);
+  BF_GetBlock(curr_fd, 1, block);
   data = BF_Block_GetData(block);
   memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
+  // printf("Block 1 has:\n");
+  // printf("ht_block_info.local_depth: %d\n", ht_block_info.local_depth);
+  // printf("ht_block_info.max_records: %d\n", ht_block_info.max_records);
+  // printf("ht_block_info.num_records: %d\n", ht_block_info.num_records);
+  // printf("ht_block_info.indexes_pointed_by: %d\n", ht_block_info.indexes_pointed_by);
+  BF_UnpinBlock(block);
 
-  if (Check(BF_AllocateBlock(ht_info.fileDesc, block)) < 0) {   // allocate 2nd bucket/block
-    printf("Error allocating block in HT_CreateFile\n");
-    return -1;
-  }
+  BF_GetBlock(curr_fd, 2, block);
   data = BF_Block_GetData(block);
-  ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
-  // ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
-  ht_block_info.max_records = 8;
-  ht_block_info.next_block = 0;
-  ht_block_info.num_records = 0;
-  ht_block_info.indexes_pointed_by = 1;
-  memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
-  BF_Block_SetDirty(block);
-  if (Check(BF_UnpinBlock(block)) < 0) {
-    printf("Error allocating block in HT_CreateFile\n");
-    return -1;
-  }
+  memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
+  // printf("Block 2 has:\n");
+  // printf("ht_block_info.local_depth: %d\n", ht_block_info.local_depth);
+  // printf("ht_block_info.max_records: %d\n", ht_block_info.max_records);
+  // printf("ht_block_info.num_records: %d\n", ht_block_info.num_records);
+  // printf("ht_block_info.indexes_pointed_by: %d\n", ht_block_info.indexes_pointed_by);
+  BF_UnpinBlock(block);
+
+  // BF_CloseFile(curr_fd);
+  
   // CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc)); 
+
+  
+  // exit(0);
 
   Record record;
   srand(time(NULL));

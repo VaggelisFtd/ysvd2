@@ -92,7 +92,8 @@ HT_ErrorCode HT_Init() {
   	return HT_OK;
 }
 
-int* ht_array_global;
+extern int** ht_array_global;
+extern int* fd_array;
 
 HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 	HT_info ht_info;
@@ -104,9 +105,10 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 	BF_Block* newblock;
 	BF_Block_Init(&newblock);
 	char* newdata;
+
 	HT_block_info ht_block_info;
 
-	int fd, starting_indexes, required_blocks, i;
+	int fd, fd_pos, starting_indexes;
 
 	for (int i = 0; i < MAX_OPEN_FILES; i++)
 		hash_table[i] = -1;
@@ -116,106 +118,98 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 		return HT_ERROR;
   	}
 
-	if (BF_OpenFile(filename, &hash_table[0]) < 0) {
+	if (BF_OpenFile(filename, &fd) < 0) {
 		printf("Error opening file: %s in HT_CreateFile\n", filename);
 		return HT_ERROR;
   	}
-	printf("In file: %s, hash_table[0] = %d\n", filename, hash_table[0]);
 
-	// META DATA BLOCK --> first
+	printf("In file: %s, fd = %d\n", filename, fd);
 	
-	// Allocate block 0 for ht_info
-	if (BF_AllocateBlock(hash_table[0], headblock) < 0) {
-		printf("Error allocating headblock in HT_CreateFile\n");
+	for (int i=0 ; i<MAX_OPEN_FILES ; i++) {
+		if (fd_array[i] == -1) {
+			fd_array[i] = fd;
+			fd_pos = i;
+		}
+	}
+	
+	if (BF_AllocateBlock(fd, headblock) < 0) {
+		printf("Error allocating block in HT_CreateFile\n");
 		return -1;
   	}
 
 	headdata = BF_Block_GetData(headblock);
 
+	starting_indexes = pow(2, depth); 	// 2^depth --> starting number of indexes
+
 	ht_info.is_ht = true;
+	ht_info.fileDesc = fd;
 	ht_info.global_depth = depth;
-
-	starting_indexes = pow(2, ht_info.global_depth); 	// 2^depth --> starting number of indexes
-	printf("global depth given is %d, ht_info.globaldepth = %d and starting indexes are: 2^g_depth=%d\n", depth, ht_info.global_depth, starting_indexes);
-	ht_info.ht_array = ht_array_global;
-	ht_info.ht_array_head = 0;							// block 0 is the head of the ht_array
-	ht_info.ht_array_length = 1;						// there only 1 block needed to store ht_array (yet)
-	ht_info.ht_array_size = starting_indexes;			// this many pointers of ht_array will be allocated
-	ht_info.num_blocks = 2;								// Block0 with ht_info and starting Block1
-	
-	ht_info.ht_array = (int *)malloc(ht_info.ht_array_size * sizeof(int));
-	if (ht_info.ht_array == NULL){
-		printf("Error allocating ht_info.ht_array in HT_CreateFile\n");
-		return HT_ERROR;
+	ht_info.ht_array_size = starting_indexes;
+	ht_array_global[fd_pos] = malloc(ht_info.ht_array_size * sizeof(int));
+	ht_info.ht_array = ht_array_global[fd_pos];
+	// Half point to Block1 and half to Block2
+	for (int i=0 ; i<ht_info.ht_array_size ; i++) {
+		if (i < ht_info.ht_array_size/2)
+			ht_info.ht_array[i] = 1;
+		else
+			ht_info.ht_array[i] = 2;
 	}
-
-	// We always begin with 1 block (and given 2^depth indexes)
-	// so we make every index point to this only starting Block with id: 1
-	for(i=0; i<ht_info.ht_array_size; i++){
-		ht_info.ht_array[i] = 1;
-	}
-
-	// for(int j=0 ; j < ht_info.ht_array_size ; j++)
-	// 	printf("ht_info.ht_array[%d] = %d\n", j, ht_info.ht_array[j]);
+	ht_info.ht_array_head = 0;
+	ht_info.ht_array_length = 1;
+	ht_info.num_blocks = 2;
 	
-	// required_blocks = ceil(starting_indexes / BF_BLOCK_SIZE); // number of blocks we need for hash table
-	// ht_info.num_blocks = required_blocks+1;
-	//ht_info.max_ht = (BF_BLOCK_SIZE - sizeof(int))/sizeof(int);   //! size of ht info?
-
-	memcpy(headblock, &ht_info, sizeof(HT_info));
+	memcpy(headdata, &ht_info, sizeof(HT_info));
 	BF_Block_SetDirty(headblock);
 	if (BF_UnpinBlock(headblock) < 0) {
 		printf("Error unpinning headblock in HT_CreateFile\n");
 		return HT_ERROR;
   	}
 
-
-	// HASH TABLE BLOCK --> second
-
-
-	// Allocate the first block with id: 1 for Records
-	if (BF_AllocateBlock(ht_info.fileDesc, newblock) < 0) {   // allocate 2nd bucket/block
-		printf("Error allocating block 1 in HT_CreateFile\n");
-		return HT_ERROR;
-  	}
+	// Allocate 1st starting block
+	if (BF_AllocateBlock(ht_info.fileDesc, newblock) < 0) {
+		printf("Error allocating block in HT_CreateFile\n");
+		return -1;
+	}
 	newdata = BF_Block_GetData(newblock);
-	// Fill the ht_block_info
-	ht_block_info.num_records = 0;
-	ht_block_info.local_depth = 1;	// since we start with 1 block and 2 pointers
-	ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record); //
+	
+	ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
+	ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
 	ht_block_info.next_block = 0;
-	ht_block_info.indexes_pointed_by = ht_info.ht_array_size; // all indexes point to the only existing starting block
-	// And copy it at the end of the block
+	ht_block_info.num_records = 0;
+	// Our admittion, we always start with 2 block, no matter the global_depth/starting buckets
+	// so half indexes point to this Block 1 and the other half to Block 2 we allocate below
+	ht_block_info.indexes_pointed_by = starting_indexes/2;
 	memcpy(newdata + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
-	// Write it back to disk
 	BF_Block_SetDirty(newblock);
 	if (BF_UnpinBlock(newblock) < 0) {
-		printf("Error unpinning newblock in HT_CreateFile\n");
-		return HT_ERROR;
+		printf("Error allocating newblock in HT_CreateFile\n");
+		return -1;
+	}
+
+	// Allocate 2nd starting block
+	if (BF_AllocateBlock(ht_info.fileDesc, newblock) < 0) {
+		printf("Error allocating block in HT_CreateFile\n");
+		return -1;
+	}
+	newdata = BF_Block_GetData(newblock);
+	ht_block_info.local_depth = 1; // may have to be an expression that hardcoded
+	ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
+	ht_block_info.next_block = 0;
+	ht_block_info.num_records = 0;
+	ht_block_info.indexes_pointed_by = starting_indexes/2;
+	memcpy(newdata + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
+	BF_Block_SetDirty(newblock);
+	if (BF_UnpinBlock(newblock) < 0) {
+		printf("Error allocating newblock in HT_CreateFile\n");
+		return -1;
+	}
+
+	printf("CREATE fd before close= %d\n", fd);
+	if (BF_CloseFile(fd) < 0) {
+		printf("Error closing fd in HT_CloseFile\n");
+		return -1;
   	}
-
-
-
-
-	// int fd_temp;
-	// for (i=0; i<starting_indexes/2; i++) //misa index sto block 1 misa 2
-	// {
-	// 	hash_table[i] = fd_temp;
-	// }
-	// for (i=starting_indexes/2; i<starting_indexes; i++)
-	// {
-	// 	hash_table[i] = fd;
-	// }
-	//print 
-
-
-
-	// BF_Block_Destroy(&newblock); // free(): invalid pointer and idk why! 
-	BF_Block_Destroy(&headblock);
-
-	// an uparxei hd h to arxeio prepei na epistrefei la8os!!!
-
-	// mallon prepei na kanei k close to file -> gt mporw na ftiaxw 30 arxeia, apla na exw anoixta ta 20
+	printf("CREATE fd after close= %d\n", fd);
 
   	return HT_OK;
 }
@@ -225,7 +219,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
     if (checkOpenFiles() == HT_ERROR)
       return HT_ERROR;
 
-    HT_info *ht_info;
+    HT_info ht_info;
     BF_Block *block;
     BF_Block_Init(&block);
     void *data;
@@ -238,8 +232,10 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
 		return HT_ERROR;
   	}
 	
-    BF_GetBlock(*indexDesc, 0, block);
+	printf("OPEN fd = %d\n", fd);
 
+    BF_GetBlock(fd, 0, block);
+	exit(0);
     /* Find empty place and write the file's data */
     for (int i = 0; i < MAX_OPEN_FILES; i++)
     {
@@ -254,7 +250,6 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
         //   return -1;
         // }
         data = BF_Block_GetData(block);
-        ht_info = data;
         break;
       }
     }

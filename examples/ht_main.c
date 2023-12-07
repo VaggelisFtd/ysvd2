@@ -76,6 +76,7 @@ const char* cities[] = {
     }                         \
   }
 
+
 int* ht_array_global;
 
 int main() {
@@ -264,8 +265,6 @@ int main() {
   // memcpy(record.city, "City21", 7);
   // CALL_OR_DIE(HT_InsertEntry(ht_info.fileDesc, record));
 
-  // CALL_OR_DIE(HT_InsertEntry(indexDesc, randomRecord())); // cant define randomRecord() for some reason...
-
 
   // printf("RUN PrintAllEntries\n");
   int target_id = 22;
@@ -275,8 +274,8 @@ int main() {
 
   CALL_OR_DIE(HashStatistics(FILE_NAME));
 
-  CALL_OR_DIE(HT_CloseFile(ht_info.fileDesc));
-  // CALL_OR_DIE(HT_CloseFile(indexDesc));
+  // CALL_OR_DIE(HT_CloseFile(ht_info.fileDesc));
+  CALL_OR_DIE(HT_CloseFile(indexDesc));
   
   BF_Block_Destroy(&block);
 

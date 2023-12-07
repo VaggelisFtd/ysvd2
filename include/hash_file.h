@@ -6,6 +6,7 @@
 #include "../include/record.h"
 
 #define MAX_RECORDS 1000 // you can change it if you want
+#define MAX_OPEN_FILES 20
 
 typedef enum HT_ErrorCode {
   HT_OK,
@@ -37,6 +38,7 @@ typedef struct {
 int hash(int id, int buckets);
 int hash2(int id, int buckets);
 
+// int hash_table[MAX_OPEN_FILES]; //hash table contains files and each file contains an ht_array (array of ids)
 
 
 /*

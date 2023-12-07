@@ -275,6 +275,7 @@ int main() {
 
   CALL_OR_DIE(HashStatistics(FILE_NAME));
 
+  CALL_OR_DIE(HT_CloseFile(ht_info.fileDesc));
   // CALL_OR_DIE(HT_CloseFile(indexDesc));
   
   BF_Block_Destroy(&block);
@@ -284,13 +285,6 @@ int main() {
   // }
   free(ht_info.ht_array);
 
-  // if (ht_info == NULL) {
-  //   return -1;
-  // }
-  if (Check(BF_CloseFile(ht_info.fileDesc)) < 0) { // kanei automata Pin
-    printf("Error closing fd in HT_CloseFile\n");
-    return -1;
-  }
   BF_Close();
   
 }

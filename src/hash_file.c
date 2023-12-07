@@ -241,8 +241,14 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
 }
 
 HT_ErrorCode HT_CloseFile(int indexDesc) {
-  //insert code here
-  return HT_OK;
+	if (BF_CloseFile(indexDesc) < 0) {
+		printf("Error closing fd in HT_CloseFile\n");
+		return -1;
+  	}
+	free(hash_table[indexDesc]);
+	hash_table[indexDesc] = NULL; 
+
+  	return HT_OK;
 }
 
 HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
@@ -832,11 +838,6 @@ HT_ErrorCode HashStatistics(char* filename) {
 	BF_UnpinBlock(block); // unpin block 0
 
 	BF_Block_Destroy(&block);
-
-	if (BF_CloseFile(indexDesc) < 0) {
-  	  printf("Error closing fd in HT_CloseFile\n");
-  	  return HT_ERROR;
-  	}
 
 	return HT_OK;
 }

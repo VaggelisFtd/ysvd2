@@ -110,18 +110,18 @@ int main() {
   headblock = BF_Block_GetData(block);
 
   // ht_array_global = malloc(GLOBAL_DEPTH * sizeof(int));
-  ht_array_global = malloc(8 * sizeof(int));
+  ht_array_global = malloc(2 * sizeof(int));
 
   ht_info.is_ht = true;
   // ht_info.global_depth = GLOBAL_DEPTH;
   // ht_info.global_depth = 1;                 // xekiname me 2 buckets (kai blocks: 0, 1 i guess) -> ara global_depth = 1
-  ht_info.global_depth = 3;                 // xekiname me 4 buckets (kai blocks: 0, 1, 2, 3) -> ara global_depth = 2
+  ht_info.global_depth = 1;                 // xekiname me 4 buckets (kai blocks: 0, 1, 2, 3) -> ara global_depth = 2
   // ht_info.ht_array = malloc(GLOBAL_DEPTH * sizeof(int)); // space for 2 blocks/buckets
   ht_info.ht_array = ht_array_global;       // space for 2 blocks/buckets
   ht_info.ht_array_head = 0;                // block 0 is the head of the ht_array
   ht_info.ht_array_length = 1;              // there only 1 block needed to store ht_array (yet)
   // ht_info.ht_array_size = GLOBAL_DEPTH;     // 2 or GLOBAL_DEPTH pointers of ht_array have been allocated
-  ht_info.ht_array_size = 8;
+  ht_info.ht_array_size = 2;
   ht_info.num_blocks = 2;                  // total number of buckets/blocks in this ht file 
 
   // ===
@@ -141,13 +141,13 @@ int main() {
 
 	// ht_info.ht_array[0] = 0; // => KANENA NA MHN DEIXNEI STO 0
 	ht_info.ht_array[0] = 1;
-	ht_info.ht_array[1] = 1;
-	ht_info.ht_array[2] = 1;
-	ht_info.ht_array[3] = 1;
-	ht_info.ht_array[4] = 2;
-	ht_info.ht_array[5] = 2;
-	ht_info.ht_array[6] = 2;
-	ht_info.ht_array[7] = 2;
+	ht_info.ht_array[1] = 2;
+	// ht_info.ht_array[2] = 1;
+	// ht_info.ht_array[3] = 1;
+	// ht_info.ht_array[4] = 2;
+	// ht_info.ht_array[5] = 2;
+	// ht_info.ht_array[6] = 2;
+	// ht_info.ht_array[7] = 2;
 
 
 	for(int j=0 ; j < ht_info.ht_array_size ; j++)
@@ -180,7 +180,7 @@ int main() {
   ht_block_info.max_records = 8;
   ht_block_info.next_block = 0;
   ht_block_info.num_records = 0;
-  ht_block_info.indexes_pointed_by = 4;
+  ht_block_info.indexes_pointed_by = 1;
   memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
   BF_Block_SetDirty(block);
   if (Check(BF_UnpinBlock(block)) < 0) {
@@ -202,7 +202,7 @@ int main() {
   ht_block_info.max_records = 8;
   ht_block_info.next_block = 0;
   ht_block_info.num_records = 0;
-  ht_block_info.indexes_pointed_by = 4;
+  ht_block_info.indexes_pointed_by = 1;
   memcpy(data + BF_BLOCK_SIZE - sizeof(HT_block_info), &ht_block_info, sizeof(HT_block_info));
   BF_Block_SetDirty(block);
   if (Check(BF_UnpinBlock(block)) < 0) {
@@ -273,7 +273,7 @@ int main() {
   // HT_PrintAllEntries(ht_info.fileDesc, &target_id);                   // print specific id
   CALL_OR_DIE(HT_PrintAllEntries(ht_info.fileDesc, NULL));            // print all
 
-  // CALL_OR_DIE(HashStatistics(FILE_NAME));
+  CALL_OR_DIE(HashStatistics(FILE_NAME));
 
   // CALL_OR_DIE(HT_CloseFile(indexDesc));
   

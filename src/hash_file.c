@@ -761,16 +761,8 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 			}
 		}
 	}
-		
-	printf("filedesc = %d\n", ht_info.fileDesc);
-	printf("ht_info.num_blocks = %d\n", ht_info.num_blocks);
 
 	BF_Block_Destroy(&block);
-
-	// if (BF_CloseFile(ht_info.fileDesc) < 0) { // kanei automata Pin
-  	//   printf("Error closing fd in HT_CloseFile\n");
-  	//   return HT_ERROR;
-  	// }
 
 	return HT_OK;
 }
@@ -781,32 +773,38 @@ HT_ErrorCode HashStatistics(char* filename) {
 	BF_Block* block;
 	BF_Block_Init(&block);
 	HT_block_info ht_block_info;
+	int indexDesc;
 
-	if (BF_OpenFile(filename, &ht_info.fileDesc) != BF_OK) {
+	if (BF_OpenFile(filename, &indexDesc) != BF_OK) {
 		printf("Error opening file: %s in HT_CreateFile\n", filename);
 		return HT_ERROR;
 	}
+	// HT_OpenIndex(filename, 1);
 
-	printf("filedesc2 = %d\n", ht_info.fileDesc);
-	int total_blocks = BF_GetBlockCounter(ht_info.fileDesc, &total_blocks);
+	BF_GetBlock(indexDesc, 0, block);
+	data = BF_Block_GetData(block);
+	memcpy(&ht_info, data, sizeof(HT_info));
+
+	int total_blocks;
+	BF_GetBlockCounter(ht_info.fileDesc, &total_blocks);
 	printf("\n");
 	printf("\n");
-	printf("\n");
-	printf("\n");
-	printf("File \"%s\" has:\n", filename);
+	printf("File \"%s\" Statistics:\n", filename);
 	printf("Total blocks: %d\n", total_blocks);
-	printf("ht_info.num_blocks: %d\n", ht_info.num_blocks);
 
 	int min_records = INT_MAX;
 	int max_records = INT_MIN;
 	int total_records = -1;
 	float avg_records;
 
+	// Skip block 0 containing HT_info
 	for (int i=1 ; i<total_blocks ; i++) {
 		// Bring this block to memory
 		if ((BF_GetBlock(ht_info.fileDesc, i, block)) < 0) {
 			return HT_ERROR;
 		}
+
+		data = BF_Block_GetData(block);
 
 		// get the metadata of this last block
 		memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
@@ -829,11 +827,13 @@ HT_ErrorCode HashStatistics(char* filename) {
 
 	printf("Minimun number of records in a block: %d\n", min_records);
 	printf("Maximun number of records in a block: %d\n", max_records);
-	printf("Average number of records in a block: %d\n", total_records/total_blocks);
+	printf("Average number of records in a block: %.3f\n", (float)total_records/total_blocks);
+
+	BF_UnpinBlock(block); // unpin block 0
 
 	BF_Block_Destroy(&block);
 
-	if (BF_CloseFile(ht_info.fileDesc) < 0) { // kanei automata Pin
+	if (BF_CloseFile(indexDesc) < 0) {
   	  printf("Error closing fd in HT_CloseFile\n");
   	  return HT_ERROR;
   	}

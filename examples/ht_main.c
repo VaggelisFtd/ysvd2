@@ -21,68 +21,66 @@ int Check(int call)
 }
 
 #define MAX_RECORDS 1000 // you can change it if you want
-#define GLOBAL_DEPTH 2 // you can change it if you want // prepei na bgei sthn telikh main
+#define GLOBAL_DEPTH 2   // you can change it if you want // prepei na bgei sthn telikh main
 #define FILE_NAME "data.db"
 
-const char* names[] = {
-  "Yannis",
-  "Christofos",
-  "Sofia",
-  "Marianna",
-  "Vagelis",
-  "Maria",
-  "Iosif",
-  "Dionisis",
-  "Konstantina",
-  "Theofilos",
-  "Giorgos",
-  "Dimitris"
-};
+const char *names[] = {
+    "Yannis",
+    "Christofos",
+    "Sofia",
+    "Marianna",
+    "Vagelis",
+    "Maria",
+    "Iosif",
+    "Dionisis",
+    "Konstantina",
+    "Theofilos",
+    "Giorgos",
+    "Dimitris"};
 
-const char* surnames[] = {
-  "Ioannidis",
-  "Svingos",
-  "Karvounari",
-  "Rezkalla",
-  "Nikolopoulos",
-  "Berreta",
-  "Koronis",
-  "Gaitanis",
-  "Oikonomou",
-  "Mailis",
-  "Michas",
-  "Halatsis"
-};
+const char *surnames[] = {
+    "Ioannidis",
+    "Svingos",
+    "Karvounari",
+    "Rezkalla",
+    "Nikolopoulos",
+    "Berreta",
+    "Koronis",
+    "Gaitanis",
+    "Oikonomou",
+    "Mailis",
+    "Michas",
+    "Halatsis"};
 
-const char* cities[] = {
-  "Athens",
-  "San Francisco",
-  "Los Angeles",
-  "Amsterdam",
-  "London",
-  "New York",
-  "Tokyo",
-  "Hong Kong",
-  "Munich",
-  "Miami"
-};
+const char *cities[] = {
+    "Athens",
+    "San Francisco",
+    "Los Angeles",
+    "Amsterdam",
+    "London",
+    "New York",
+    "Tokyo",
+    "Hong Kong",
+    "Munich",
+    "Miami"};
 
 #define CALL_OR_DIE(call)     \
   {                           \
     HT_ErrorCode code = call; \
-    if (code != HT_OK) {      \
+    if (code != HT_OK)        \
+    {                         \
       printf("Error\n");      \
       exit(code);             \
     }                         \
   }
 
-int* ht_array_global;
+int *ht_array_global;
 
-int main() {
+/*int main() {
   BF_Init(LRU);
 
   printf("test main 84\n");
-  
+
   CALL_OR_DIE(HT_Init());
 
   int indexDesc;
@@ -92,7 +90,7 @@ int main() {
   printf("test main 92\n");
   CALL_OR_DIE(HT_CloseFile(indexDesc));
   printf("test main 94\n");
-  return 0;
+  // return 0;
 
   HT_info ht_info;
   BF_Block *block;
@@ -131,37 +129,37 @@ int main() {
   ht_info.ht_array_length = 1;              // there only 1 block needed to store ht_array (yet)
   // ht_info.ht_array_size = GLOBAL_DEPTH;     // 2 or GLOBAL_DEPTH pointers of ht_array have been allocated
   ht_info.ht_array_size = 2;
-  ht_info.num_blocks = 2;                  // total number of buckets/blocks in this ht file 
+  ht_info.num_blocks = 2;                  // total number of buckets/blocks in this ht file
 
   // ===
-	// int step = 2;
+  // int step = 2;
   // int BlockId = 1;
   // int i = 0;
   // while (step <= ht_info.ht_array_size) {
-	// 	if (i < step) {
-	// 		ht_info.ht_array[i] = BlockId;
-	// 		i++;
-	// 	}
-	// 	else {
-	// 		step *= 2;
-	// 		BlockId++;
-	// 	}
+  // 	if (i < step) {
+  // 		ht_info.ht_array[i] = BlockId;
+  // 		i++;
+  // 	}
+  // 	else {
+  // 		step *= 2;
+  // 		BlockId++;
+  // 	}
   // }
 
-	ht_info.ht_array[0] = 0;
-	ht_info.ht_array[1] = 1;
-	// ht_info.ht_array[2] = 2;
-	// ht_info.ht_array[3] = 2;
-	// ht_info.ht_array[4] = 2;
-	// ht_info.ht_array[5] = 2;
-	// ht_info.ht_array[6] = 2;
-	// ht_info.ht_array[7] = 2;
+  ht_info.ht_array[0] = 0;
+  ht_info.ht_array[1] = 1;
+  // ht_info.ht_array[2] = 2;
+  // ht_info.ht_array[3] = 2;
+  // ht_info.ht_array[4] = 2;
+  // ht_info.ht_array[5] = 2;
+  // ht_info.ht_array[6] = 2;
+  // ht_info.ht_array[7] = 2;
 
-	for(int j=0 ; j < ht_info.ht_array_size ; j++)
-		printf("ht_info.ht_array[%d] = %d\n", j, ht_info.ht_array[j]);
-	// exit(0);
+  for(int j=0 ; j < ht_info.ht_array_size ; j++)
+    printf("ht_info.ht_array[%d] = %d\n", j, ht_info.ht_array[j]);
+  // exit(0);
   // ===
-	
+
   memcpy(headblock, &ht_info, sizeof(HT_info));
   BF_Block_SetDirty(block);
   if (Check(BF_UnpinBlock(block)) < 0) {
@@ -186,7 +184,7 @@ int main() {
     printf("Error allocating block in HT_CreateFile\n");
     return -1;
   }
-  
+
   BF_GetBlock(ht_info.fileDesc, 1, block);
   data = BF_Block_GetData(block);
   memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
@@ -207,7 +205,7 @@ int main() {
     printf("Error allocating block in HT_CreateFile\n");
     return -1;
   }
-  // CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc)); 
+  // CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc));
 
   Record record;
   srand(time(NULL));
@@ -238,7 +236,7 @@ int main() {
   CALL_OR_DIE(HT_PrintAllEntries(ht_info.fileDesc, NULL));            // print all
 
   // CALL_OR_DIE(HT_CloseFile(indexDesc));
-  
+
   BF_Block_Destroy(&block);
 
   // for(int i=0; i<ht_info.ht_array_size ; i++) {
@@ -254,5 +252,64 @@ int main() {
     return -1;
   }
   BF_Close();
-  
+
+}
+*/
+
+int main()
+{
+
+  HT_info ht_info;
+  HT_block_info ht_block_info;
+  BF_Block *block;
+  void *data;
+  int fd;
+  int required_blocks;
+  int N;
+  int i;
+
+  BF_CreateFile(FILE_NAME);
+  BF_OpenFile(FILE_NAME, &ht_info.fileDesc);
+
+  // META DATA BLOCK --> first
+
+  BF_Block_Init(&block);
+  BF_AllocateBlock(ht_info.fileDesc, block);
+
+  data = BF_Block_GetData(block);
+
+  ht_info.is_ht = true;
+  ht_info.global_depth = 5;
+  ht_info.ht_array_head = -1;
+  ht_info.ht_array =
+      N = pow(2, ht_info.global_depth); // 2^depth --> number of entries
+  ht_info.ht_array_size = 50;
+
+  // ht_info.ht_array = (int *)malloc(ht_info.ht_array_size * sizeof(int));
+  ht_info.ht_array_length = 1;
+  ht_info.num_blocks = required_blocks + 1;
+  ht_info.ht_array = (int *)malloc(4 * sizeof(int));
+  // ht_info.ht_array = (int *)malloc(8 * sizeof(int));
+  // ht_info.ht_array = (int *)malloc(16 * sizeof(int));
+
+  if (ht_info.ht_array == NULL)
+  {
+    return -1;
+  }
+
+  for (int i = 0; i < ht_info.ht_array_length; i++)
+  {
+    ht_info.ht_array[i] = 0;
+  }
+  // for (i = 0; i < ht_info.ht_array_size; i++)
+  // {
+  //   ht_info.ht_array[i] = -1;
+  // }
+
+  free(ht_info.ht_array);
+
+  BF_Block_SetDirty(block);
+  BF_UnpinBlock(block);
+  BF_Block_Destroy(block);
+  return 0;
 }

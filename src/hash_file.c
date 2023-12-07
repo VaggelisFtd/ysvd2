@@ -12,91 +12,103 @@
 
 #define MAX_OPEN_FILES 20
 
-#define CALL_BF(call)       \
-{                           \
-  BF_ErrorCode code = call; \
-  if (code != BF_OK) {      \
-	BF_PrintError(code);    \
-	return HT_ERROR;        \
-  }                         \
-}
+#define CALL_BF(call)             \
+	{                             \
+		BF_ErrorCode code = call; \
+		if (code != BF_OK)        \
+		{                         \
+			BF_PrintError(code);  \
+			return HT_ERROR;      \
+		}                         \
+	}
 
-int *hash_table[MAX_OPEN_FILES]; //hash table contains files and each file contains an ht_array (array of ids)
+int *hash_table[MAX_OPEN_FILES]; // hash table contains files and each file contains an ht_array (array of ids)
 
 int DirtyUnpin(BF_Block *block)
 {
-  BF_Block_SetDirty(block);
-  BF_UnpinBlock(block);
+	BF_Block_SetDirty(block);
+	BF_UnpinBlock(block);
 }
 
 int checkOpenFiles()
 {
-  int i;
+	int i;
 
-  for (i = 0; i < MAX_OPEN_FILES; i++)
-  {
-    if (hash_table[i] == NULL)
-      break;
-  }
-  if (i == MAX_OPEN_FILES)
-  {
-    printf("Open files are at maximum - more files can't be opened");
-    return HT_ERROR;
-  }
-  return HT_OK;
+	for (i = 0; i < MAX_OPEN_FILES; i++)
+	{
+		if (hash_table[i] == NULL)
+			break;
+	}
+	if (i == MAX_OPEN_FILES)
+	{
+		printf("Open files are at maximum - more files can't be opened");
+		return HT_ERROR;
+	}
+	return HT_OK;
 }
 
-void intToBinary(HT_info ht_info, int* binary, int var) {	
+void intToBinary(HT_info ht_info, int *binary, int var)
+{
 	// Loop through each bit
-	int* result = malloc(BITS * sizeof(int));
+	int *result = malloc(BITS * sizeof(int));
 
-	for (int i = ht_info.global_depth ; i >= 0 ; i--) {
+	for (int i = ht_info.global_depth; i >= 0; i--)
+	{
 		result[i] = var & 1; // Get the least significant bit
-		
+
 		// Right shift to check the next bit
 		var = var >> 1;
 	}
 
-	for (int i = 0; i < ht_info.global_depth+1 ; i++) {
+	for (int i = 0; i < ht_info.global_depth + 1; i++)
+	{
 		printf(" %d", result[i]);
 	}
 	printf("\n");
 
-	for (int i = 0; i < ht_info.global_depth ; i++) {
-        binary[i] = result[i];
-    }
-	
+	for (int i = 0; i < ht_info.global_depth; i++)
+	{
+		binary[i] = result[i];
+	}
+
 	free(result);
 }
 
-int binaryToInt(int* binary, int length) {
-    int result = 0;
-    for (int i = 0; i < length; i++) {
-        result = result * 2 + binary[i];
-    }
-    return result;
+int binaryToInt(int *binary, int length)
+{
+	int result = 0;
+	for (int i = 0; i < length; i++)
+	{
+		result = result * 2 + binary[i];
+	}
+	return result;
 }
 
 // Hash Function
-int hash(int id, int ht_array_size){
-	return (id * (id+3)) % ht_array_size;
+int hash(int id, int ht_array_size)
+{
+	return (id * (id + 3)) % ht_array_size;
 }
-int hash2(int id, int ht_array_size){
+int hash2(int id, int ht_array_size)
+{
 	return id % ht_array_size;
 }
 
-HT_ErrorCode HT_Init() {
-  	for (int i = 0; i < MAX_OPEN_FILES; i++)
-    	hash_table[i] = NULL;
+HT_ErrorCode HT_Init()
+{
+	for (int i = 0; i < MAX_OPEN_FILES; i++)
+		hash_table[i] = NULL;
 
-  	return HT_OK;
+	return HT_OK;
 }
 
-HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
+HT_ErrorCode HT_CreateIndex(const char *filename, int depth)
+{
+	/*Intialize ht info*/
 	HT_info ht_info;
 	HT_block_info ht_block_info;
-	BF_Block* block;
-	void* data;
+	BF_Block *block;
+	void *data;
 	int fd;
 	int N;
 	int required_blocks;
@@ -115,20 +127,22 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 	ht_info.is_ht = true;
 	ht_info.global_depth = depth;
 	ht_info.ht_array_head = -1;
-	
-  N = pow(2, ht_info.global_depth); // 2^depth --> number of entries
+
+	N = pow(2, ht_info.global_depth); // 2^depth --> number of entries
 	ht_info.ht_array_size = N;
 
-	ht_info.ht_array = (int *)malloc(ht_info.ht_array_size*sizeof(int));
-	if (ht_info.ht_array==NULL){
+	ht_info.ht_array = (int *)malloc(ht_info.ht_array_size * sizeof(int));
+	if (ht_info.ht_array == NULL)
+	{
 		return -1;
 	}
-	for(i=0; i<ht_info.ht_array_size; i++){
+	for (i = 0; i < ht_info.ht_array_size; i++)
+	{
 		ht_info.ht_array[i] = -1;
 	}
 
 	ht_info.ht_array_length = 1;
-	ht_info.num_blocks = required_blocks+1;
+	ht_info.num_blocks = required_blocks + 1;
 
 	memcpy(block, &ht_info, sizeof(HT_info));
 
@@ -140,23 +154,23 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
 	for (i = 0; i < required_blocks; i++)
 	{
-	  BF_Block *next_block;
-	  BF_Block_Init(&next_block);
-	  CALL_BF(BF_AllocateBlock(fd, next_block));
-	  if (i==0) // save hash table's first block id
-	  {
-	    CALL_BF(BF_GetBlockCounter(ht_info.fileDesc, &ht_info.ht_array_head)); // this gives 1
-	    ht_info.ht_array_head--;  // but id is 0
-	  }
-	  data = BF_Block_GetData(next_block);
-	  memcpy(data, &ht_info, sizeof(HT_info));
+		BF_Block *next_block;
+		BF_Block_Init(&next_block);
+		CALL_BF(BF_AllocateBlock(fd, next_block));
+		if (i == 0) // save hash table's first block id
+		{
+			CALL_BF(BF_GetBlockCounter(ht_info.fileDesc, &ht_info.ht_array_head)); // this gives 1
+			ht_info.ht_array_head--;											   // but id is 0
+		}
+		data = BF_Block_GetData(next_block);
+		memcpy(data, &ht_info, sizeof(HT_info));
 
-	  DirtyUnpin(next_block);
+		DirtyUnpin(next_block);
 
-	  BF_Block_Destroy(&next_block);
+		BF_Block_Destroy(&next_block);
 	}
 
-	//Last initializations in HT_info
+	// Last initializations in HT_info
 	ht_info.ht_array_size = i;
 	ht_info.ht_array_length = required_blocks;
 
@@ -164,11 +178,11 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
 	int fd_temp;
 
-	for(i=0; i<2; i++) //ftiaxnoume dyo block
+	for (i = 0; i < 2; i++) // ftiaxnoume dyo block
 	{
-    printf("test169\n");
+		printf("test169\n");
 		BF_AllocateBlock(fd, block);
-    printf("test171\n");
+		printf("test171\n");
 		data = BF_Block_GetData(block);
 		ht_block_info.num_records = 0;
 		ht_block_info.local_depth = 1;
@@ -177,89 +191,95 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 		ht_block_info.indexes_pointed_by = 0;
 		memcpy(data, &ht_block_info, sizeof(HT_block_info));
 
-		if(i==0) {fd_temp=fd;} // kratame to id tou prwtou sto fd temp kai sto fd tha einai to id tou 2ou
+		if (i == 0)
+		{
+			fd_temp = fd;
+		} // kratame to id tou prwtou sto fd temp kai sto fd tha einai to id tou 2ou
 
 		DirtyUnpin(block);
 	}
 
-	for (i=0; i<N/2; i++) //misa index sto block 1 misa sto 2
+	for (i = 0; i < N / 2; i++) // misa index sto block 1 misa sto 2
 	{
 		hash_table[i] = &fd_temp;
 	}
-	for (i=N/2; i<N; i++)
+	for (i = N / 2; i < N; i++)
 	{
 		hash_table[i] = &fd;
 	}
 
 	BF_Block_Destroy(&block);
 
-	//CALL_BF(BF_CloseFile(ht_info.fileDesc)); //den doulevei-->giati? afou kaloume open
+	// CALL_BF(BF_CloseFile(ht_info.fileDesc)); //den doulevei-->giati? afou kaloume open
 
-  return HT_OK;
+	return HT_OK;
 }
 
-HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
-  	/* Open files are at maximum - we can't open more */
-    if (checkOpenFiles() == HT_ERROR)
-      return HT_ERROR;
-
-    HT_info *ht_info;
-    BF_Block *block;
-    void *data;
-
-    /*Open the file*/
-    BF_OpenFile(fileName, indexDesc);
-    BF_Block_Init(&block);
-    BF_GetBlock(*indexDesc, 0, block);
-
-    /* Find empty place and write the file's data */
-    for (int i = 0; i < MAX_OPEN_FILES; i++)
-    {
-      if (hash_table[i] == NULL)
-      {
-        hash_table[i] = (int *)malloc(sizeof(int));
-        if (hash_table[i] == NULL) 
-        {
-          perror("malloc");
-          return -1;
-        }
-        data = BF_Block_GetData(block);
-        ht_info = data;
-        break;
-      }
-    }
-
-    BF_UnpinBlock(block);
-
-    return HT_OK;
-}
-
-HT_ErrorCode HT_CloseFile(int indexDesc) 
+HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc)
 {
-	if (BF_CloseFile(indexDesc) < 0) 
-  {
+	/* Open files are at maximum - we can't open more */
+	if (checkOpenFiles() == HT_ERROR)
+		return HT_ERROR;
+
+	HT_info *ht_info;
+	BF_Block *block;
+	void *data;
+
+	/*Open the file*/
+	BF_OpenFile(fileName, indexDesc);
+	BF_Block_Init(&block);
+	BF_GetBlock(*indexDesc, 0, block);
+
+	/* Find empty place and write the file's data */
+	for (int i = 0; i < MAX_OPEN_FILES; i++)
+	{
+		if (hash_table[i] == NULL)
+		{
+			hash_table[i] = (int *)malloc(sizeof(int));
+			if (hash_table[i] == NULL)
+			{
+				perror("malloc");
+				return -1;
+			}
+			data = BF_Block_GetData(block);
+			ht_info = data;
+			break;
+		}
+	}
+
+	BF_UnpinBlock(block);
+
+	return HT_OK;
+}
+
+HT_ErrorCode HT_CloseFile(int indexDesc)
+{
+	if (BF_CloseFile(indexDesc) < 0)
+	{
 		printf("Error closing fd in HT_CloseFile\n");
 		return -1;
-  }
+	}
 	hash_table[indexDesc] = NULL; // --------------------------------------------------------------------------------
-	free(hash_table[indexDesc]); // anapoda?-------------------------------------------------------------------------
+	free(hash_table[indexDesc]);  // anapoda?-------------------------------------------------------------------------
 
-  return HT_OK;
+	return HT_OK;
 }
 
-HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
+HT_ErrorCode HT_InsertEntry(int indexDesc, Record record)
+{
 
 	// BF_Init(LRU);
-  
-	char* head_data;
-	char* target_data;
+
+	char *head_data;
+	char *target_data;
 	HT_info ht_info;
 	HT_block_info ht_block_info;
-	BF_Block* head_block;
-	BF_Block* target_block;
+	BF_Block *head_block;
+	BF_Block *target_block;
 	BF_Block_Init(&head_block);
 	BF_Block_Init(&target_block);
-	if ((BF_GetBlock(indexDesc, 0, head_block)) < 0) {
+	if ((BF_GetBlock(indexDesc, 0, head_block)) < 0)
+	{
 		printf("Error getting block in HT_InsertEntry\n");
 		return -1;
 	}
@@ -268,7 +288,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 	head_data = BF_Block_GetData(head_block);
 	// get the metadata of this head_block so that we can access ht_info.fileDesc
 	memcpy(&ht_info, head_data, sizeof(HT_info));
-	for(int j=0 ; j < ht_info.ht_array_size ; j++)
+	for (int j = 0; j < ht_info.ht_array_size; j++)
 		printf("ht_info.ht_array[%d] = %d\n", j, ht_info.ht_array[j]);
 	printf("\n");
 
@@ -282,11 +302,12 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
 	//===============
 	// max_binary_digits();
-	int* binary = malloc(BITS * sizeof(int));
+	int *binary = malloc(BITS * sizeof(int));
 	// intToBinary(ht_info, binary, bucket_to_insert);
 	intToBinary(ht_info, binary, record.id);
 	printf("bucket to insert id:%d ==HASHING== ", record.id);
-	for (int i = 0; i < ht_info.global_depth ; i++) {
+	for (int i = 0; i < ht_info.global_depth; i++)
+	{
 		printf(" %d", binary[i]);
 	}
 	printf("\n");
@@ -296,16 +317,18 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 	free(binary);
 	//===============
 
-	if(bucket_to_insert < 0 || bucket_to_insert >= ht_info.ht_array_size) {
+	if (bucket_to_insert < 0 || bucket_to_insert >= ht_info.ht_array_size)
+	{
 		return -1;
 	}
 	assert(bucket_to_insert >= 0 && bucket_to_insert < ht_info.ht_array_size);
-	
+
 	// Check if bucket has enough space for the Record
 	int target_block_id = ht_info.ht_array[bucket_to_insert];
 	printf("\n Trying to insert record id: %d in target_block [%d] -> %d\n", record.id, bucket_to_insert, target_block_id);
 	// Pin target_block
-	if (BF_GetBlock(indexDesc, target_block_id, target_block) < 0) {
+	if (BF_GetBlock(indexDesc, target_block_id, target_block) < 0)
+	{
 		printf("Error getting target_block in HT_InsertEntry\n");
 		return -1;
 	}
@@ -315,8 +338,9 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 	memcpy(&ht_block_info, target_data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
 	// Check if there is room to add the record
 	printf(" ht_block_info.num_records = %d, ht_block_info.max_records %d\n", ht_block_info.num_records, ht_block_info.max_records);
-	if (ht_block_info.num_records < ht_block_info.max_records) {
-		
+	if (ht_block_info.num_records < ht_block_info.max_records)
+	{
+
 		printf(" writing record id: %d on block:%d\n", record.id, target_block_id);
 		// insert the record in the last position of records in the block
 		memcpy(target_data + sizeof(Record) * ht_block_info.num_records, &record, sizeof(Record));
@@ -340,10 +364,11 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
 		return HT_OK;
 	}
-	else {
+	else
+	{
 		// if there is not enough space in tthe target block
 		printf(" =====PLEON DEN XWRANE RECORDS STO BLOCK %d======== \n", target_block_id);
-		
+
 		// Do we need the headblock anymore???
 		// (BF_UnpinBlock(head_block) ?
 
@@ -351,14 +376,14 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 		Record copy_records[8];
 		// Up to 8 records will be stored, so i init IDs as -1 at first to indicate the end of the valid records, when id = -1 is reached
 		// We will use ht_block_info.num_records anyway, but -1 is an extra safety
-		for(int i=0 ; i<8 ; i++) {
+		for (int i = 0; i < 8; i++)
+		{
 			copy_records[i].id = -1;
 		}
 
 		// Here we have: target_block_id, new_block_id
 
-		
-    	// paizei na mhn xreiazetai kan - afou exoume thn GetBlockCounter()
+		// paizei na mhn xreiazetai kan - afou exoume thn GetBlockCounter()
 		printf(" ht_info.num_blocks = %d \n", ht_info.num_blocks);
 		// memcpy(data, &ht_info, sizeof(HT_info)); // ginetai mesa sto if + (na sumplhrwsw an ginetai allou wste na xerw
 		// BF_Block_SetDirty(head_block);			// oti den xreiazetai se ka8e kladi twn ifs)
@@ -367,22 +392,24 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 		// Check if more than 1 ht_array indexes point to the FULL BLOCK
 		printf("ht_block_info.local_depth = %d\n", ht_block_info.local_depth);
 		printf("ht_info.global_depth = %d\n", ht_info.global_depth);
-		if((ht_block_info.local_depth < ht_info.global_depth) || (ht_block_info.indexes_pointed_by > 1)) {
-		// if(ht_block_info.local_depth < ht_info.global_depth) {
+		if ((ht_block_info.local_depth < ht_info.global_depth) || (ht_block_info.indexes_pointed_by > 1))
+		{
+			// if(ht_block_info.local_depth < ht_info.global_depth) {
 
 			// Till this line, target_block points to hashed target_block
 			// So, now we create a new block* so that we can track both old-target-block and new-inserted-block
-			char* new_data;
-			BF_Block* new_block;
+			char *new_data;
+			BF_Block *new_block;
 			BF_Block_Init(&new_block);
 			int new_block_id;
 
 			HT_block_info new_ht_block_info;
 
 			// We allocate a new block
-			if (BF_AllocateBlock(ht_info.fileDesc, new_block) < 0) {
-			printf("Error allocating block in HT_InsertEntry\n");
-			return -1;
+			if (BF_AllocateBlock(ht_info.fileDesc, new_block) < 0)
+			{
+				printf("Error allocating block in HT_InsertEntry\n");
+				return -1;
 			}
 
 			// update ht_info's total block/buckets number (+1 allocated block)
@@ -390,13 +417,14 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
 			// Here we have: target_block_id and new_block_id
 			// We get new blocks id
-			if ((BF_GetBlockCounter(ht_info.fileDesc, &new_block_id)) < 0) {
+			if ((BF_GetBlockCounter(ht_info.fileDesc, &new_block_id)) < 0)
+			{
 				printf("Error getting num of blocks in HT_InsertEntry\n");
 				return -1;
 			}
 			new_block_id--; // we "subtract" block with id: 0, containing ht_info
 			printf(" new_block_id = %d \n", new_block_id);
-			
+
 			new_ht_block_info.num_records = 0;
 			new_ht_block_info.local_depth = ht_block_info.local_depth;
 			// new_ht_block_info.max_records = (BF_BLOCK_SIZE - sizeof(HT_block_info)) / sizeof(Record);
@@ -410,47 +438,49 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 			memcpy(new_data + BF_BLOCK_SIZE - sizeof(HT_block_info), &new_ht_block_info, sizeof(HT_block_info));
 			BF_Block_SetDirty(new_block);
 
-
-
-
 			ht_block_info.local_depth++;
 			new_ht_block_info.local_depth++;
 
 			printf("MPHKA\n");
 			int i = 0;
 			int count = 0;
-      		int old_num_indexes = ht_block_info.indexes_pointed_by;
+			int old_num_indexes = ht_block_info.indexes_pointed_by;
 			printf("ht_info.ht_array_size = %d\n", ht_info.ht_array_size);
 			printf("\n");
-			for(int j=0 ; j < ht_info.ht_array_size ; j++)
+			for (int j = 0; j < ht_info.ht_array_size; j++)
 				printf("ht_info.ht_array[%d] = %d\n", j, ht_info.ht_array[j]);
-      		printf("old_num_indexes = %d\n", old_num_indexes);
+			printf("old_num_indexes = %d\n", old_num_indexes);
 			// Iterate through ht_array
-			do {
+			do
+			{
 				// For each index pointing to full target block
-				if (ht_info.ht_array[i] == target_block_id) {
+				if (ht_info.ht_array[i] == target_block_id)
+				{
 					// In order to equally distribute the indexes pointing to full block and the new block
 					printf("count = %d\n", count);
-					printf("old_num_indexes/2 = %d\n", old_num_indexes/2);
-					if (old_num_indexes == 1) {
+					printf("old_num_indexes/2 = %d\n", old_num_indexes / 2);
+					if (old_num_indexes == 1)
+					{
 						// pass // na allaxw to condition se != k na bgalw to else
 					}
-					else {
-						if (count >= old_num_indexes/2) {
+					else
+					{
+						if (count >= old_num_indexes / 2)
+						{
 							printf("IN FKING IN\n");
 							ht_info.ht_array[i] = new_block_id;
 							new_ht_block_info.indexes_pointed_by++;
 							ht_block_info.indexes_pointed_by--;
 						}
 					}
-          			count++;
+					count++;
 				}
 				i++;
 			} while (i < ht_info.ht_array_size); // minus the above target re-routed one
 			printf("HT ARRAY AFTER\n");
 			printf("ht_info.ht_array_size = %d\n", ht_info.ht_array_size);
 			printf("\n");
-			for(int j=0 ; j < ht_info.ht_array_size ; j++)
+			for (int j = 0; j < ht_info.ht_array_size; j++)
 				printf("ht_info.ht_array[%d] = %d\n", j, ht_info.ht_array[j]);
 
 			// SOOOOOOOOOOOOOOOS - NA KANW TO IDIO GIA TO FULL BLOCK - oxi ++; alla na dw pou 8a to enhmerwnw k 8a to kanw unpin
@@ -479,9 +509,10 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 			printf("MID WAY THROUGH\n");
 			i = 0;
 			// For each already existing record in FULL BLOCK (target_block) + Record_to_insert -> HT_InsertEntry(...) (hashing with 1 more bucket this time)
-      		for(int k = 0 ; k < ht_block_info.num_records * sizeof(Record) ; k = k + sizeof(Record)) {
+			for (int k = 0; k < ht_block_info.num_records * sizeof(Record); k = k + sizeof(Record))
+			{
 				// copy in our Record copy_array, the contents of the current record we are reading, in order to re-insert it
-        		memcpy(&copy_records[i++], target_data + k, sizeof(Record));
+				memcpy(&copy_records[i++], target_data + k, sizeof(Record));
 			}
 
 			// swsto print
@@ -501,18 +532,13 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 			BF_UnpinBlock(new_block);
 			BF_UnpinBlock(target_block);
 
-
-
-
-
-
-
 			// Now that everything is set, we are ready to re-insert all the old records + the new one
 			i = 0;
 			printf("old record num: %d\n", old_num_records);
 
 			// For each already existing record in FULL BLOCK + Record_to_insert -> HT_InsertEntry(...) (hashing with 1 more bucket this time)
-			for(int k = 0 ; k < old_num_records * sizeof(Record) ; k = k + sizeof(Record)) {
+			for (int k = 0; k < old_num_records * sizeof(Record); k = k + sizeof(Record))
+			{
 				// We use our record array with the copies
 				Record temp_record = copy_records[i++];
 				printf("old record copy being re-inserted is: id=%d, name=%s, surname=%s, city=%s\n", temp_record.id, temp_record.name, temp_record.surname, temp_record.city);
@@ -520,23 +546,23 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 				if (HT_InsertEntry(ht_info.fileDesc, temp_record) != HT_OK)
 					return HT_ERROR;
 			}
-			
+
 			// Now once more for the new Record to insert as we said above
 			// if (!HT_InsertEntry(indexDesc, record))
 			if (HT_InsertEntry(ht_info.fileDesc, record) != HT_OK)
 				return HT_ERROR;
 
 			// If we get here, all insertions (old + new) were executed properly, thus
-      		BF_Block_Destroy(&new_block);
+			BF_Block_Destroy(&new_block);
 			return HT_OK;
 
 			// NA DW TI 8A KANW ME TA IDS TWN BLOCKS - kinda solved me .num_records = 0;
-
 		}
-		else {
+		else
+		{
 			// At this point ht_block_info contains target_block's info
 			// Check if more than 1 ht_array indexes point to the FULL BLOCK
-      		
+
 			// Double ht_array's size
 			int old_ht_array_size = ht_info.ht_array_size;
 			int new_ht_array_size = old_ht_array_size * 2;
@@ -544,24 +570,24 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 			ht_info.ht_array_size = new_ht_array_size;
 			ht_info.ht_array = realloc(ht_info.ht_array, new_ht_array_size * sizeof(int));
 			assert(ht_info.ht_array != NULL);
-			
+
 			// // Temporary array to hold binary bits
 			// int binary[BITS];
-			int* binary = malloc(BITS * sizeof(int));
+			int *binary = malloc(BITS * sizeof(int));
 
 			// Create a temporary copy of the old hash table
-			int* old_ht_array = malloc(old_ht_array_size * sizeof(int));
-			for(int j=0 ; j < old_ht_array_size ; j++) {
+			int *old_ht_array = malloc(old_ht_array_size * sizeof(int));
+			for (int j = 0; j < old_ht_array_size; j++)
+			{
 				// memcpy(old_ht_array, ht_info.ht_array, old_ht_array_size * sizeof(int));
 				old_ht_array[j] = ht_info.ht_array[j];
 			}
-			
-			for(int j=0 ; j < old_ht_array_size ; j++)
+
+			for (int j = 0; j < old_ht_array_size; j++)
 				printf("old ht array[%d] = %d\n", j, old_ht_array[j]);
 
-
-			char* curr_data;
-			BF_Block* curr_block;
+			char *curr_data;
+			BF_Block *curr_block;
 			BF_Block_Init(&curr_block);
 			// int curr_block_id;
 
@@ -569,22 +595,25 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
 			// For each entry in the old hash table
 			// Extract the first d bits of the index
-			for (int i = 0; i < new_ht_array_size; i++) { // or old_ht_array_size
-				
+			for (int i = 0; i < new_ht_array_size; i++)
+			{ // or old_ht_array_size
+
 				// Firstly, reset indexesPointedBy (so that we recalculate them later)
-				for (int j=0 ; j < old_ht_array_size ; j++) {
+				for (int j = 0; j < old_ht_array_size; j++)
+				{
 					BF_GetBlock(ht_info.fileDesc, ht_info.ht_array[i], curr_block);
 					curr_data = BF_Block_GetData(curr_block);
 					memcpy(&curr_ht_block_info, curr_data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
 					curr_ht_block_info.indexes_pointed_by = 0;
 					memcpy(curr_data + BF_BLOCK_SIZE - sizeof(HT_block_info), &curr_ht_block_info, sizeof(HT_block_info));
 					BF_Block_SetDirty(curr_block);
-					BF_UnpinBlock(curr_block);					
+					BF_UnpinBlock(curr_block);
 				}
 
 				intToBinary(ht_info, binary, i);
 				printf("===\n");
-				for (int i = 0; i < ht_info.global_depth ; i++) {
+				for (int i = 0; i < ht_info.global_depth; i++)
+				{
 					printf(" %d", binary[i]);
 				}
 				printf("\n");
@@ -606,9 +635,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 				BF_Block_SetDirty(curr_block);
 				BF_UnpinBlock(curr_block);
 			}
-			
-			BF_Block_Destroy(&curr_block);
 
+			BF_Block_Destroy(&curr_block);
 
 			// Free the temporary copy of the old hash table
 			free(old_ht_array);
@@ -624,21 +652,18 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 			memcpy(head_data, &ht_info, sizeof(HT_info));
 			BF_Block_SetDirty(head_block);
 			BF_UnpinBlock(head_block);
-			
+
 			// Now once more for the new Record to insert as we said above
 			// if (!HT_InsertEntry(indexDesc, record))
 			if (HT_InsertEntry(ht_info.fileDesc, record))
 				return HT_ERROR;
 
-      		free(binary);
+			free(binary);
 			// If we get here, all insertions (old + new) were executed properly, thus
 			BF_Block_Destroy(&target_block);
 			BF_Block_Destroy(&head_block);
 			return HT_OK;
 		}
-
-
-
 
 		// Is there anything else to update ???
 	}
@@ -651,17 +676,19 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 	return HT_OK;
 }
 
-HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
+HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id)
+{
 
 	// void* data;
-	char* data;
-	BF_Block* block;
+	char *data;
+	BF_Block *block;
 	BF_Block_Init(&block);
 	HT_info ht_info;
 	HT_block_info ht_block_info;
 	Record record;
 
-	if ((BF_GetBlock(indexDesc, 0, block)) < 0) {
+	if ((BF_GetBlock(indexDesc, 0, block)) < 0)
+	{
 		printf("Error getting block in HT_InsertEntry\n");
 		return -1;
 	}
@@ -673,30 +700,34 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 
 	// Firstly get the total num of blocks in hash file
 	int total_blocks;
-	if ((BF_GetBlockCounter(ht_info.fileDesc, &total_blocks)) < 0) {
+	if ((BF_GetBlockCounter(ht_info.fileDesc, &total_blocks)) < 0)
+	{
 		printf("Error getting num of blocks in HT_InsertEntry\n");
 		return -1;
 	}
 	printf("TOTAL BLOCKS: %d\n", total_blocks);
 
 	// Unpin block 0 since we dont need it anymore
-	if ((BF_UnpinBlock(block)) < 0) {
+	if ((BF_UnpinBlock(block)) < 0)
+	{
 		printf("Error unpinning block in HT_InsertEntry\n");
 		return -1;
 	}
 
 	// check if it's the one we are looking for
-	if (id != NULL) {
+	if (id != NULL)
+	{
 		int found = 0;
 		printf("ID TO FIND = %d\n", *id);
 
 		// Hash id to find the bucket where the record is supposed to be
 		int bucket_to_insert = hash2(*id, ht_info.ht_array_size);
-		int* binary = malloc(BITS * sizeof(int));
+		int *binary = malloc(BITS * sizeof(int));
 		// intToBinary(ht_info, binary, bucket_to_insert);
 		intToBinary(ht_info, binary, *id);
 		printf("\nbucket to insert %d ==HASH STATISTICS== ", *id);
-		for (int i = 0; i < ht_info.global_depth ; i++) {
+		for (int i = 0; i < ht_info.global_depth; i++)
+		{
 			printf(" %d", binary[i]);
 		}
 		printf("\n");
@@ -706,8 +737,9 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 		free(binary);
 
 		// Bring this block to memory
-		if ((BF_GetBlock(ht_info.fileDesc, ht_info.ht_array[bucket_to_insert], block)) < 0) {
-		return -1;
+		if ((BF_GetBlock(ht_info.fileDesc, ht_info.ht_array[bucket_to_insert], block)) < 0)
+		{
+			return -1;
 		}
 
 		// get pointer to this block's data
@@ -717,11 +749,13 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 		memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
 
 		// for every record in this block
-		for(int k = 0 ; k < ht_block_info.num_records * sizeof(Record) ; k = k + sizeof(Record)) { 
+		for (int k = 0; k < ht_block_info.num_records * sizeof(Record); k = k + sizeof(Record))
+		{
 			// copy in our variable record, the contents of the current record we are reading
 			memcpy(&record, data + k, sizeof(Record));
 			// we print it each time it occures
-			if (record.id == *id) {
+			if (record.id == *id)
+			{
 				found = 1;
 				printf("Record in offset %d in Block %d: id=%d, name=%s, surname=%s, city=%s\n", k, ht_info.ht_array[bucket_to_insert], record.id, record.name, record.surname, record.city);
 			}
@@ -733,13 +767,15 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 
 		if (!found)
 			printf("Record with id: %d was not found.\n", *id);
-
 	}
-	else {
-		for (int i=1 ; i<total_blocks ; i++) {
+	else
+	{
+		for (int i = 1; i < total_blocks; i++)
+		{
 			// Bring this block to memory
-			if ((BF_GetBlock(ht_info.fileDesc, i, block)) < 0) {
-			return -1;
+			if ((BF_GetBlock(ht_info.fileDesc, i, block)) < 0)
+			{
+				return -1;
 			}
 
 			// get pointer to this block's data
@@ -749,14 +785,16 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 			memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
 
 			// for every record in this block
-			for(int k = 0 ; k < ht_block_info.num_records * sizeof(Record) ; k = k + sizeof(Record)) {
+			for (int k = 0; k < ht_block_info.num_records * sizeof(Record); k = k + sizeof(Record))
+			{
 				// copy in our variable record, the contents of the current record we are reading
 				memcpy(&record, data + k, sizeof(Record));
 
 				printf("Record in offset %d in Block %d: id=%d, name=%s, surname=%s, city=%s\n", k, i, record.id, record.name, record.surname, record.city);
-			
+
 				// Write babck on disk the block we just read
-				if ((BF_UnpinBlock(block)) < 0) {
+				if ((BF_UnpinBlock(block)) < 0)
+				{
 					printf("Error unpinning block in HT_GetAllEntries\n");
 					return -1;
 				}
@@ -769,15 +807,17 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 	return HT_OK;
 }
 
-HT_ErrorCode HashStatistics(char* filename) {
+HT_ErrorCode HashStatistics(char *filename)
+{
 	HT_info ht_info;
-	char* data;
-	BF_Block* block;
+	char *data;
+	BF_Block *block;
 	BF_Block_Init(&block);
 	HT_block_info ht_block_info;
 	int indexDesc;
 
-	if (BF_OpenFile(filename, &indexDesc) != BF_OK) {
+	if (BF_OpenFile(filename, &indexDesc) != BF_OK)
+	{
 		printf("Error opening file: %s in HT_CreateFile\n", filename);
 		return HT_ERROR;
 	}
@@ -800,9 +840,11 @@ HT_ErrorCode HashStatistics(char* filename) {
 	float avg_records;
 
 	// Skip block 0 containing HT_info
-	for (int i=1 ; i<total_blocks ; i++) {
+	for (int i = 1; i < total_blocks; i++)
+	{
 		// Bring this block to memory
-		if ((BF_GetBlock(ht_info.fileDesc, i, block)) < 0) {
+		if ((BF_GetBlock(ht_info.fileDesc, i, block)) < 0)
+		{
 			return HT_ERROR;
 		}
 
@@ -813,15 +855,18 @@ HT_ErrorCode HashStatistics(char* filename) {
 
 		total_records += ht_block_info.num_records;
 
-		if (ht_block_info.num_records < min_records) {
+		if (ht_block_info.num_records < min_records)
+		{
 			min_records = ht_block_info.num_records;
 		}
-		if (ht_block_info.num_records > max_records) {
+		if (ht_block_info.num_records > max_records)
+		{
 			max_records = ht_block_info.num_records;
 		}
 
 		// Write back on disk the block we just read
-		if ((BF_UnpinBlock(block)) < 0) {
+		if ((BF_UnpinBlock(block)) < 0)
+		{
 			printf("Error unpinning block in HT_GetAllEntries\n");
 			return HT_ERROR;
 		}
@@ -829,7 +874,7 @@ HT_ErrorCode HashStatistics(char* filename) {
 
 	printf("Minimun number of records in a block: %d\n", min_records);
 	printf("Maximun number of records in a block: %d\n", max_records);
-	printf("Average number of records in a block: %.3f\n", (float)total_records/total_blocks);
+	printf("Average number of records in a block: %.3f\n", (float)total_records / total_blocks);
 
 	BF_UnpinBlock(block); // unpin block 0
 

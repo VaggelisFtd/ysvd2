@@ -5,7 +5,6 @@
 // #include "../include/bf.h"
 #include "../include/record.h"
 
-#define MAX_RECORDS 1000 // you can change it if you want
 #define MAX_OPEN_FILES 20
 
 typedef enum HT_ErrorCode {

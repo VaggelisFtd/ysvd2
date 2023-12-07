@@ -92,7 +92,6 @@ HT_ErrorCode HT_Init() {
   	return HT_OK;
 }
 
-
 HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 	HT_info ht_info;
 	HT_block_info ht_block_info;
@@ -675,7 +674,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 	// get the metadata of this block so that we can access ht_info.fileDesc
 	memcpy(&ht_info, data, sizeof(HT_info));
 
-	// Firstly get the total num of blocks in heap file
+	// Firstly get the total num of blocks in hash file
 	int total_blocks;
 	if ((BF_GetBlockCounter(ht_info.fileDesc, &total_blocks)) < 0) {
 		printf("Error getting num of blocks in HT_InsertEntry\n");

@@ -17,7 +17,7 @@
   BF_ErrorCode code = call; \
   if (code != BF_OK) {      \
 	BF_PrintError(code);    \
-	return HP_ERROR;        \
+	return HT_ERROR;        \
   }                         \
 }
 
@@ -114,10 +114,9 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
 	ht_info.is_ht = true;
 	ht_info.global_depth = depth;
-
-	N = pow(2, ht_info.global_depth); // 2^depth --> number of entries
-
 	ht_info.ht_array_head = -1;
+	
+  N = pow(2, ht_info.global_depth); // 2^depth --> number of entries
 	ht_info.ht_array_size = N;
 
 	ht_info.ht_array = (int *)malloc(ht_info.ht_array_size*sizeof(int));
@@ -130,7 +129,6 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
 	ht_info.ht_array_length = 1;
 	ht_info.num_blocks = required_blocks+1;
-	//ht_info.max_ht = (BF_BLOCK_SIZE - sizeof(int))/sizeof(int);   //! size of ht info?
 
 	memcpy(block, &ht_info, sizeof(HT_info));
 
@@ -138,68 +136,64 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
 	required_blocks = ceil(N / BF_BLOCK_SIZE); // number of blocks we need for hash table
 
-	//printf("required blocks for hash table: %d\n", required_blocks);
+	printf("Required blocks for hash table to be stored: %d\n", required_blocks); // afto dinei swsta apotelesmata ---------------------
 
-	// for (i = 0; i < required_blocks; i++)
+	for (i = 0; i < required_blocks; i++)
+	{
+	  BF_Block *next_block;
+	  BF_Block_Init(&next_block);
+	  CALL_BF(BF_AllocateBlock(fd, next_block));
+	  if (i==0) // save hash table's first block id
+	  {
+	    CALL_BF(BF_GetBlockCounter(ht_info.fileDesc, &ht_info.ht_array_head)); // this gives 1
+	    ht_info.ht_array_head--;  // but id is 0
+	  }
+	  data = BF_Block_GetData(next_block);
+	  memcpy(data, &ht_info, sizeof(HT_info));
+
+	  DirtyUnpin(next_block);
+
+	  BF_Block_Destroy(&next_block);
+	}
+
+	//Last initializations in HT_info
+	ht_info.ht_array_size = i;
+	ht_info.ht_array_length = required_blocks;
+
+	DirtyUnpin(block); //--> xreiazetai alla vgazei seg xwris to apo panw
+
+	// int fd_temp;
+
+	// for(i=0; i<2; i++) //ftiaxnoume dyo block
 	// {
-	//   BF_Block *next_block;
-	//   BF_Block_Init(&next_block);
-	//   CALL_BF(BF_AllocateBlock(fd, next_block));
-	//   if (i==0) // save hash table's first block id
-	//   {
-	//     CALL_BF(BF_GetBlockCounter(ht_info.fileDesc, &ht_info.ht_array_head)); // this gives 1
-	//     ht_info.ht_array_head--;  // but id is 0
-	//   }
-	//   data = BF_Block_GetData(next_block);
-	//   memcpy(data, &ht_info, sizeof(HT_info));
+	// 	BF_AllocateBlock(fd, block);
+	// 	data = BF_Block_GetData(block);
+	// 	ht_block_info.num_records = 0;
+	// 	ht_block_info.local_depth = 1;
+	// 	ht_block_info.max_records = MAX_RECORDS; //!
+	// 	ht_block_info.next_block = 0;
+	// 	ht_block_info.indexes_pointed_by = 0;
+	// 	memcpy(data, &ht_block_info, sizeof(HT_block_info));
 
-	//   DirtyUnpin(next_block);
+	// 	if(i==0) {fd_temp=fd;} // kratame to id tou prwtou sto fd temp kai sto fd tha einai to id tou 2ou
 
-	//   BF_Block_Destroy(&next_block);
+	// 	DirtyUnpin(block);
 	// }
 
-	//last initializations in HT_info
-	//ht_info.ht_array_size = i;
-	//ht_info.ht_array_length = required_blocks;
-
-	//DirtyUnpin(block); //--> xreiazetai alla vgazei seg xwris to apo panw
-
-	printf("test 170\n");
-
-	int fd_temp;
-
-	for(i=0; i<2; i++) //ftiaxnoume dyo block
-	{
-		BF_AllocateBlock(fd, block);
-		data = BF_Block_GetData(block);
-		ht_block_info.num_records = 0;
-		ht_block_info.local_depth = 1;
-		ht_block_info.max_records = MAX_RECORDS; //!
-		ht_block_info.next_block = 0;
-		ht_block_info.indexes_pointed_by = 0;
-		memcpy(data, &ht_block_info, sizeof(HT_block_info));
-
-		if(i==0) {fd_temp=fd;}
-
-		DirtyUnpin(block); // pali segmentation
-	}
-
-	printf("test 190\n");
-	for (i=0; i<N/2; i++) //misa index sto block 1 misa 2
-	{
-		hash_table[i] = &fd_temp;
-	}
-	for (i=N/2; i<N; i++)
-	{
-		hash_table[i] = &fd;
-	}
-	//print 
+	// for (i=0; i<N/2; i++) //misa index sto block 1 misa sto 2
+	// {
+	// 	hash_table[i] = &fd_temp;
+	// }
+	// for (i=N/2; i<N; i++)
+	// {
+	// 	hash_table[i] = &fd;
+	// }
 
 	BF_Block_Destroy(&block);
 
-	//CALL_BF(BF_CloseFile(ht_info.fileDesc)); den doulevei-->giati? afou kaloume open
+	//CALL_BF(BF_CloseFile(ht_info.fileDesc)); //den doulevei-->giati? afou kaloume open
 
-  	return HT_OK;
+  return HT_OK;
 }
 
 HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
@@ -221,7 +215,6 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
     {
       if (hash_table[i] == NULL)
       {
-        //hash_table[i] = (openedIndex *)malloc(sizeof(openedIndex));
         hash_table[i] = (int *)malloc(sizeof(int));
         if (hash_table[i] == NULL) 
         {

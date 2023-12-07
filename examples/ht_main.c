@@ -88,6 +88,10 @@ int main() {
   int indexDesc;
   CALL_OR_DIE(HT_CreateIndex(FILE_NAME, GLOBAL_DEPTH));
   printf("test main 90\n");
+  CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc));
+  printf("test main 92\n");
+  CALL_OR_DIE(HT_CloseFile(indexDesc));
+  printf("test main 94\n");
   return 0;
 
   HT_info ht_info;

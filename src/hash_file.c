@@ -162,32 +162,34 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
 	DirtyUnpin(block); //--> xreiazetai alla vgazei seg xwris to apo panw
 
-	// int fd_temp;
+	int fd_temp;
 
-	// for(i=0; i<2; i++) //ftiaxnoume dyo block
-	// {
-	// 	BF_AllocateBlock(fd, block);
-	// 	data = BF_Block_GetData(block);
-	// 	ht_block_info.num_records = 0;
-	// 	ht_block_info.local_depth = 1;
-	// 	ht_block_info.max_records = MAX_RECORDS; //!
-	// 	ht_block_info.next_block = 0;
-	// 	ht_block_info.indexes_pointed_by = 0;
-	// 	memcpy(data, &ht_block_info, sizeof(HT_block_info));
+	for(i=0; i<2; i++) //ftiaxnoume dyo block
+	{
+    printf("test169\n");
+		BF_AllocateBlock(fd, block);
+    printf("test171\n");
+		data = BF_Block_GetData(block);
+		ht_block_info.num_records = 0;
+		ht_block_info.local_depth = 1;
+		ht_block_info.max_records = MAX_RECORDS; //!
+		ht_block_info.next_block = 0;
+		ht_block_info.indexes_pointed_by = 0;
+		memcpy(data, &ht_block_info, sizeof(HT_block_info));
 
-	// 	if(i==0) {fd_temp=fd;} // kratame to id tou prwtou sto fd temp kai sto fd tha einai to id tou 2ou
+		if(i==0) {fd_temp=fd;} // kratame to id tou prwtou sto fd temp kai sto fd tha einai to id tou 2ou
 
-	// 	DirtyUnpin(block);
-	// }
+		DirtyUnpin(block);
+	}
 
-	// for (i=0; i<N/2; i++) //misa index sto block 1 misa sto 2
-	// {
-	// 	hash_table[i] = &fd_temp;
-	// }
-	// for (i=N/2; i<N; i++)
-	// {
-	// 	hash_table[i] = &fd;
-	// }
+	for (i=0; i<N/2; i++) //misa index sto block 1 misa sto 2
+	{
+		hash_table[i] = &fd_temp;
+	}
+	for (i=N/2; i<N; i++)
+	{
+		hash_table[i] = &fd;
+	}
 
 	BF_Block_Destroy(&block);
 
@@ -232,15 +234,17 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
     return HT_OK;
 }
 
-HT_ErrorCode HT_CloseFile(int indexDesc) {
-	if (BF_CloseFile(indexDesc) < 0) {
+HT_ErrorCode HT_CloseFile(int indexDesc) 
+{
+	if (BF_CloseFile(indexDesc) < 0) 
+  {
 		printf("Error closing fd in HT_CloseFile\n");
 		return -1;
-  	}
-	free(hash_table[indexDesc]);
-	hash_table[indexDesc] = NULL; 
+  }
+	hash_table[indexDesc] = NULL; // --------------------------------------------------------------------------------
+	free(hash_table[indexDesc]); // anapoda?-------------------------------------------------------------------------
 
-  	return HT_OK;
+  return HT_OK;
 }
 
 HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {

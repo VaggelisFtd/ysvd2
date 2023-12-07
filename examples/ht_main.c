@@ -229,9 +229,6 @@ int main() {
   BF_GetBlock(curr_fd, 0, block);
   data = BF_Block_GetData(block);
   memcpy(&ht_info, data, sizeof(HT_info));
-  // printf("ht_info.fileDesc = %d\n", ht_info.fileDesc);
-  // printf("ht_info.ht_array_size = %d\n", ht_info.ht_array_size);
-  // printf("ht_info.num_blocks = %d\n", ht_info.num_blocks);
 
   for (int i=0 ; i<ht_info.ht_array_size ; i++) {
     printf("ht_info.ht_array[%d] = %d\n", i, ht_info.ht_array[i]);
@@ -240,30 +237,16 @@ int main() {
   BF_GetBlock(curr_fd, 1, block);
   data = BF_Block_GetData(block);
   memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
-  // printf("Block 1 has:\n");
-  // printf("ht_block_info.local_depth: %d\n", ht_block_info.local_depth);
-  // printf("ht_block_info.max_records: %d\n", ht_block_info.max_records);
-  // printf("ht_block_info.num_records: %d\n", ht_block_info.num_records);
-  // printf("ht_block_info.indexes_pointed_by: %d\n", ht_block_info.indexes_pointed_by);
   BF_UnpinBlock(block);
 
   BF_GetBlock(curr_fd, 2, block);
   data = BF_Block_GetData(block);
   memcpy(&ht_block_info, data + BF_BLOCK_SIZE - sizeof(HT_block_info), sizeof(HT_block_info));
-  // printf("Block 2 has:\n");
-  // printf("ht_block_info.local_depth: %d\n", ht_block_info.local_depth);
-  // printf("ht_block_info.max_records: %d\n", ht_block_info.max_records);
-  // printf("ht_block_info.num_records: %d\n", ht_block_info.num_records);
-  // printf("ht_block_info.indexes_pointed_by: %d\n", ht_block_info.indexes_pointed_by);
   BF_UnpinBlock(block);
 
-  // BF_CloseFile(curr_fd);
+  CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc)); 
+  printf("indexDesc = %d\n", indexDesc);
   
-  // CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc)); 
-
-  
-  // exit(0);
-
   Record record;
   srand(time(NULL));
   int r;
@@ -281,7 +264,8 @@ int main() {
     r = rand() % 10;
     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
 
-    CALL_OR_DIE(HT_InsertEntry(ht_info.fileDesc, record));
+    CALL_OR_DIE(HT_InsertEntry(fd_array[indexDesc], record));
+    // CALL_OR_DIE(HT_InsertEntry(ht_info.fileDesc, record));
     // CALL_OR_DIE(HT_InsertEntry(indexDesc, randomRecord())); // cant define randomRecord() for some reason...
   }
 

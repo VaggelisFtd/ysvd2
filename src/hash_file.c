@@ -129,6 +129,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 		if (fd_array[i] == -1) {
 			fd_array[i] = fd;
 			fd_pos = i;
+			break;
 		}
 	}
 	
@@ -209,6 +210,9 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 		printf("Error closing fd in HT_CloseFile\n");
 		return -1;
   	}
+	// If we close the file, we need to unlock its Position on the array of max open files
+	fd_array[fd_pos] = -1;
+
 	printf("CREATE fd after close= %d\n", fd);
 
   	return HT_OK;
@@ -220,41 +224,45 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
       return HT_ERROR;
 
     HT_info ht_info;
+
     BF_Block *block;
     BF_Block_Init(&block);
     void *data;
 
-	int fd;
+	int fd, fd_pos;
 
     /*Open the file*/
 	if (BF_OpenFile(fileName, &fd) < 0) {
 		printf("Error opening file: %s in HT_CreateFile\n", fileName);
 		return HT_ERROR;
   	}
-	
+
 	printf("OPEN fd = %d\n", fd);
 
-    BF_GetBlock(fd, 0, block);
-	exit(0);
-    /* Find empty place and write the file's data */
-    for (int i = 0; i < MAX_OPEN_FILES; i++)
-    {
-      if (hash_table[i] == -1)
-      {
-		// xreiazetai na einai int** en telei ? h apla int* 
-        //hash_table[i] = (openedIndex *)malloc(sizeof(openedIndex));
-        // hash_table[i] = (int *)malloc(sizeof(int));
-        // if (hash_table[i] == NULL) 
-        // {
-        //   perror("malloc");
-        //   return -1;
-        // }
-        data = BF_Block_GetData(block);
-        break;
-      }
-    }
+	for (int i=0 ; i<MAX_OPEN_FILES ; i++) {
+		if (fd_array[i] == -1) {
+			fd_array[i] = fd;
+			fd_pos = i;
+			break;
+		}
+	}
+
+    if ((BF_GetBlock(fd, 0, block)) < 0) {
+		printf("Error getting block in HT_InsertEntry\n");
+		return HT_ERROR;
+	}
+	data = BF_Block_GetData(block);
+	memcpy(&ht_info, data, sizeof(HT_info));
+
+	if (!ht_info.is_ht) {
+		printf("This is NOT a hash file.");
+		return HT_ERROR;
+	}
+
+	*indexDesc = fd_pos;
 
     BF_UnpinBlock(block);
+	BF_Block_Destroy(&block);
 
     return HT_OK;
 }
